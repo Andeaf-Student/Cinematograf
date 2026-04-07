@@ -112,7 +112,7 @@ int main()
 
 
             filme[indexFilm].getSala().afiseazaLocuri();
-            cin.get();
+
 
             break;
         }
