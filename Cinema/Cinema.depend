@@ -1,0 +1,23 @@
+# depslib dependency file v1.0
+1775580201 source:d:\coduri\an2_s2\proiect poo\cinematograf\cinema\film.cpp
+	<iostream>
+	"Film.h"
+
+1775580193 d:\coduri\an2_s2\proiect poo\cinematograf\cinema\film.h
+	<string>
+	"Sala.h"
+
+1775579872 source:d:\coduri\an2_s2\proiect poo\cinematograf\cinema\main.cpp
+	<iostream>
+	<vector>
+	"Film.h"
+	<string.h>
+
+1775580193 source:d:\coduri\an2_s2\proiect poo\cinematograf\cinema\sala.cpp
+	<iostream>
+	<stdexcept>
+	"Sala.h"
+
+1775580193 d:\coduri\an2_s2\proiect poo\cinematograf\cinema\sala.h
+	<vector>
+

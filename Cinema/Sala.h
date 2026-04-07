@@ -1,0 +1,24 @@
+#ifndef SALA_H
+#define SALA_H
+
+#include <vector>
+using namespace std;
+
+class Sala {
+private:
+    int index;
+    vector<vector<bool>> locuri;
+
+public:
+
+    Sala(int index, int randuri, int coloane);
+
+
+    void afiseazaLocuri() const;
+    void rezervaLoc(int rand, int col);
+
+    int getIndex() const;
+    int getNumarRanduri() const;
+};
+
+#endif
