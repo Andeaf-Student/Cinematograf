@@ -36,6 +36,8 @@
 		<Unit filename="Film.h" />
 		<Unit filename="Sala.cpp" />
 		<Unit filename="Sala.h" />
+		<Unit filename="Suvenir.cpp" />
+		<Unit filename="Suvenir.h" />
 		<Unit filename="main.cpp" />
 		<Extensions />
 	</Project>

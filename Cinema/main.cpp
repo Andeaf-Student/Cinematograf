@@ -1,7 +1,7 @@
 #include <iostream>
 #include <vector>
 #include "Film.h"
-
+#include "Suvenir.h"
 #include <string.h>
 
 using namespace std;
@@ -18,6 +18,14 @@ int main()
     Sala s5(5, 5, 4);
     Sala s6(6, 4, 6);
 
+    vector<Suvenir> suveniruri;
+
+    suveniruri.push_back(Suvenir("Ochelari Spiderman", 25));
+    suveniruri.push_back(Suvenir("Cana Hulk", 40));
+    suveniruri.push_back(Suvenir("Tricou Batman", 60));
+    suveniruri.push_back(Suvenir("Figurina Iron Man", 80));
+    suveniruri.push_back(Suvenir("Poster Avengers", 20));
+
     filme.push_back(Film("Inception", "SF", 148, s1));
     filme.push_back(Film("Titanic", "Drama", 180, s2));
     filme.push_back(Film("Avatar", "Actiune", 162, s3));
@@ -30,10 +38,10 @@ int main()
     do
     {
 
-        cout << "\n--- MENIU CINEMATOGRAF ---\n";
         cout << "1. Afiseaza lista de filme\n";
         cout << "2. Rezerva un loc la film\n";
-        cout << "3. Iesire\n";
+        cout << "3. Cumpara suvenir\n";
+        cout << "4. Iesire\n";
         cout << "Alege optiunea: ";
         cin >> optiune;
 
@@ -63,53 +71,59 @@ int main()
             }
 
             filme[indexFilm].getSala().afiseazaLocuri();
+            cout<<"Cate locuri vrei sa rezervi: ";
+            int nr_locuri=1;
+            cin>>nr_locuri;
 
-            int rand, col;
-            cout << "Introdu randul: ";
-            cin >> rand;
-            cout << "Introdu coloana: ";
-            cin >> col;
-            rand--;
-            col--;
-
-            try
+            for (int i=1; i<=nr_locuri; i++)
             {
-                int nrRanduri = filme[indexFilm].getSala().getNumarRanduri(); // creează getter
+                cout<<"Rezervare "<<i<<": "<<endl;
+                int rand, col;
+                cout << "Introdu randul: ";
+                cin >> rand;
+                cout << "Introdu coloana: ";
+                cin >> col;
+                rand--;
+                col--;
 
-                if(rand >= 0 && rand <= 1)
-                    cout << "Pret: 30 lei" << endl;
-                else if(rand > 1 && rand <= nrRanduri-2)
-                    cout << "Pret: 35 lei" << endl;
-                else
-                    cout << "Pret: 40 lei" << endl;
-
-
-                string conf;
-                cout << "Confirmare (DA/NU): ";
-                cin >> conf;
-
-
-                for(char &c : conf) c = toupper(c);
-
-                if(conf == "DA")
+                try
                 {
-                    cout << "Rezervare efectuata!\n";
-                    filme[indexFilm].getSala().rezervaLoc(rand, col);
-                }
+                    int nrRanduri = filme[indexFilm].getSala().getNumarRanduri(); // creează getter
 
-                else
+                    if(rand >= 0 && rand <= 1)
+                        cout << "Pret: 30 lei" << endl;
+                    else if(rand > 1 && rand <= nrRanduri-2)
+                        cout << "Pret: 35 lei" << endl;
+                    else
+                        cout << "Pret: 40 lei" << endl;
+
+
+                    string conf;
+                    cout << "Confirmare (DA/NU): ";
+                    cin >> conf;
+
+
+                    for(char &c : conf) c = toupper(c);
+
+                    if(conf == "DA")
+                    {
+                        cout << "Rezervare efectuata!\n";
+                        filme[indexFilm].getSala().rezervaLoc(rand, col);
+                    }
+
+                    else
+                    {
+                        cout << "Rezervare anulata!" << endl;
+                        break;
+
+                    }
+
+                }
+                catch (exception &e)
                 {
-                    cout << "Rezervare anulata!" << endl;
-                    break;
-
+                    cout << "Eroare: " << e.what() << endl;
                 }
-
             }
-            catch (exception &e)
-            {
-                cout << "Eroare: " << e.what() << endl;
-            }
-
 
             filme[indexFilm].getSala().afiseazaLocuri();
 
@@ -118,6 +132,49 @@ int main()
         }
 
         case 3:
+        {
+            cout << "\n--- Suveniruri disponibile ---\n";
+
+            for (int i = 0; i < suveniruri.size(); i++)
+            {
+                cout << i << ". ";
+                suveniruri[i].afiseaza();
+            }
+
+            int alegere;
+            cout << "Alege suvenirul: ";
+            cin >> alegere;
+
+            if (alegere < 0 || alegere >= suveniruri.size())
+            {
+                cout << "Alegere invalida!\n";
+                break;
+            }
+
+            string conf;
+            cout << "Confirmare cumparare (DA/NU): ";
+            cin >> conf;
+
+
+            for (char &c : conf) c = toupper(c);
+
+            if (conf == "DA")
+            {
+                cout << "Ai cumparat: "
+                     << suveniruri[alegere].getNume()
+                     << " pentru "
+                     << suveniruri[alegere].getPret()
+                     << " lei\n";
+            }
+            else
+            {
+                cout << "Comanda anulata!\n";
+            }
+
+            break;
+        }
+
+        case 4:
             cout << "La revedere!\n";
             break;
 
@@ -126,7 +183,7 @@ int main()
         }
 
     }
-    while(optiune != 3);
+    while(optiune != 4);
 
     return 0;
 }
