@@ -123,14 +123,9 @@ int main()
 
             for (int i=1; i<=nr_locuri; i++)
             {
-                cout<<"Rezervare "<<i<<": "<<endl;
                 int rand, col;
-                cout << "Introdu randul: ";
-                cin >> rand;
-                cout << "Introdu coloana: ";
-                cin >> col;
-                rand--;
-                col--;
+                filme[indexFilm].getSala().selecteazaLocInteractiv(rand, col);
+                cout<<"\nRezervare "<<i<<": Rand " << rand + 1 << ", Loc " << col + 1 << endl;
 
                 try
                 {

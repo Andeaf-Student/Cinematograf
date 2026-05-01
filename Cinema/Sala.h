@@ -16,6 +16,7 @@ public:
 
     void afiseazaLocuri() const;
     void rezervaLoc(int rand, int col);
+    void selecteazaLocInteractiv(int& outRand, int& outCol) const;
 
     int getIndex() const;
     int getNumarRanduri() const;
