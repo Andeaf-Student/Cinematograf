@@ -13,19 +13,19 @@ Sala::Sala(int index, int randuri, int coloane) {
 
 
 void Sala::afiseazaLocuri() const {
-    cout<<endl;
-    cout << "Sala " << index << endl;
-    cout<<endl;
-    cout<<"\n--- ECRAN ---\n"<<endl;
+    cout << "\nSala " << index << endl;
+    cout << "═══════════════════════\n";
     for (int i = 0; i < locuri.size(); i++) {
+        cout << "   " << (char)('A' + i) << "  ";
         for (int j = 0; j < locuri[i].size(); j++) {
             if (locuri[i][j])
-                cout << "X ";
+                cout << "[■]";
             else
-                cout << "O ";
+                cout << "[ ]";
         }
         cout << endl;
     }
+    cout << "\n   [■] Ocupat  [ ] Liber\n" << endl;
 }
 
 
@@ -49,21 +49,25 @@ void Sala::selecteazaLocInteractiv(int& outRand, int& outCol) const {
 
     while (true) {
         system("cls");
-        cout << "\n--- ECRAN ---\n" << endl;
-        cout << "Foloseste sagetile pentru a naviga. Apasa ENTER pentru a selecta.\n\n";
+        cout << "\nFoloseste sagetile pentru a naviga. Apasa ENTER pentru a selecta.\n";
+        cout << "═══════════════════════\n";
         
         for (int i = 0; i < randuri; i++) {
+            cout << "   " << (char)('A' + i) << "  ";
             for (int j = 0; j < coloane; j++) {
                 if (i == cursorR && j == cursorC) {
-                    if (locuri[i][j]) cout << "[X] ";
-                    else cout << "[O] ";
+                    cout << "[▣]";
                 } else {
-                    if (locuri[i][j]) cout << " X  ";
-                    else cout << " O  ";
+                    if (locuri[i][j]) cout << "[■]";
+                    else cout << "[ ]";
                 }
+            }
+            if (i == cursorR) {
+                cout << " Selectat: " << (char)('A' + cursorR) << (cursorC + 1);
             }
             cout << endl;
         }
+        cout << "\n   [■] Ocupat  [ ] Liber  [▣] Ales\n" << endl;
 
         int tasta = _getch();
         if (tasta == 224 || tasta == 0) { // Taste speciale (sageti)

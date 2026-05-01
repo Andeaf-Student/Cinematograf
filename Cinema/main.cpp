@@ -2,6 +2,14 @@
 #include <vector>
 #include <fstream>
 #include <sstream>
+#include <iomanip>
+#include <ctime>
+#include <random>
+
+#define WIN32_LEAN_AND_MEAN
+#define NOMINMAX
+#include <windows.h>
+
 #include "Film.h"
 #include "Suvenir.h"
 #include <string.h>
@@ -10,6 +18,8 @@ using namespace std;
 
 int main()
 {
+    SetConsoleOutputCP(CP_UTF8);
+
     vector<Film> filme;
     vector<Suvenir> suveniruri;
 
@@ -20,13 +30,16 @@ int main()
             if (line.empty()) continue;
             stringstream ss(line);
             string titlu, gen, temp;
-            int durata, idSala, randuri, locuri;
+            int durata, varstaMinima, idSala, randuri, locuri;
             
             getline(ss, titlu, ',');
             getline(ss, gen, ',');
             
             getline(ss, temp, ',');
             durata = stoi(temp);
+
+            getline(ss, temp, ',');
+            varstaMinima = stoi(temp);
             
             getline(ss, temp, ',');
             idSala = stoi(temp);
@@ -38,7 +51,7 @@ int main()
             locuri = stoi(temp);
             
             Sala s(idSala, randuri, locuri);
-            filme.push_back(Film(titlu, gen, durata, s));
+            filme.push_back(Film(titlu, gen, durata, varstaMinima, s));
         }
         fileFilme.close();
     } else {
@@ -131,12 +144,17 @@ int main()
                 {
                     int nrRanduri = filme[indexFilm].getSala().getNumarRanduri(); // creează getter
 
-                    if(rand >= 0 && rand <= 1)
+                    int pretCalculat = 0;
+                    if(rand >= 0 && rand <= 1) {
+                        pretCalculat = 30;
                         cout << "Pret: 30 lei" << endl;
-                    else if(rand > 1 && rand <= nrRanduri-2)
+                    } else if(rand > 1 && rand <= nrRanduri-2) {
+                        pretCalculat = 35;
                         cout << "Pret: 35 lei" << endl;
-                    else
+                    } else {
+                        pretCalculat = 40;
                         cout << "Pret: 40 lei" << endl;
+                    }
 
 
                     string conf;
@@ -150,6 +168,30 @@ int main()
                     {
                         cout << "Rezervare efectuata!\n";
                         filme[indexFilm].getSala().rezervaLoc(rand, col);
+                        
+                        time_t t = time(nullptr);
+                        tm* now = localtime(&t);
+                        
+                        const char alphanum[] = "0123456789ABCDEFGHIJKLMNOPQRSTUVWXYZ";
+                        string codBilet = "#";
+                        for (int k = 0; k < 5; ++k) {
+                            codBilet += alphanum[::rand() % (sizeof(alphanum) - 1)];
+                        }
+
+                        stringstream locSs;
+                        locSs << "Randul " << (char)('A' + rand) << ", Scaunul " << col + 1;
+                        
+                        stringstream pretSs;
+                        pretSs << pretCalculat << " RON";
+                        
+                        cout << "\n┌─────────────────────────────────────────┐\n";
+                        cout << "│   🎬 CINEMA AURORA                      │\n";
+                        cout << "│   Film: " << left << setw(32) << filme[indexFilm].getTitlu() << "│\n";
+                        cout << "│   Data: " << put_time(now, "%d.%m.%Y  %H:%M") << setw(16) << setfill(' ') << " " << "│\n";
+                        cout << "│   Loc: " << left << setw(33) << locSs.str() << "│\n";
+                        cout << "│   Pret: " << left << setw(32) << pretSs.str() << "│\n";
+                        cout << "│   Cod: " << left << setw(33) << codBilet << "│\n";
+                        cout << "└─────────────────────────────────────────┘\n\n";
                     }
 
                     else

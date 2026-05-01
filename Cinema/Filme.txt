@@ -1,6 +1,6 @@
-Inception,SF,148,1,5,5
-Titanic,Drama,180,2,4,4
-Avatar,Actiune,162,3,6,6
-The Godfather,Crima,175,4,3,5
-Joker,Drama,122,5,5,4
-Interstellar,SF,169,6,4,6
+Inception,SF,148,12,1,5,5
+Titanic,Drama,180,12,2,4,4
+Avatar,Actiune,162,12,3,6,6
+The Godfather,Crima,175,18,4,3,5
+Joker,Drama,122,18,5,5,4
+Interstellar,SF,169,12,6,4,6

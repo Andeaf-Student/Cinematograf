@@ -11,14 +11,17 @@ private:
     string titlu;
     string gen;
     int durata;
+    int varstaMinima;
     Sala sala;
 
 public:
-    Film(string titlu, string gen, int durata, Sala sala);
+    Film(string titlu, string gen, int durata, int varstaMinima, Sala sala);
 
     void afiseaza() const;
 
     Sala& getSala();
+    int getVarstaMinima() const;
+    string getTitlu() const;
 
 };
 
