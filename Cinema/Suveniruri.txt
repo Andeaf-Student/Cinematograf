@@ -1,0 +1,5 @@
+Ochelari Spiderman,25
+Cana Hulk,40
+Tricou Batman,60
+Figurina Iron Man,80
+Poster Avengers,20

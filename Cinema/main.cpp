@@ -1,5 +1,7 @@
 #include <iostream>
 #include <vector>
+#include <fstream>
+#include <sstream>
 #include "Film.h"
 #include "Suvenir.h"
 #include <string.h>
@@ -9,40 +11,84 @@ using namespace std;
 int main()
 {
     vector<Film> filme;
-
-
-    Sala s1(1, 5, 5);
-    Sala s2(2, 4, 4);
-    Sala s3(3, 6, 6);
-    Sala s4(4, 3, 5);
-    Sala s5(5, 5, 4);
-    Sala s6(6, 4, 6);
-
     vector<Suvenir> suveniruri;
 
-    suveniruri.push_back(Suvenir("Ochelari Spiderman", 25));
-    suveniruri.push_back(Suvenir("Cana Hulk", 40));
-    suveniruri.push_back(Suvenir("Tricou Batman", 60));
-    suveniruri.push_back(Suvenir("Figurina Iron Man", 80));
-    suveniruri.push_back(Suvenir("Poster Avengers", 20));
+    ifstream fileFilme("Filme.txt");
+    if (fileFilme.is_open()) {
+        string line;
+        while (getline(fileFilme, line)) {
+            if (line.empty()) continue;
+            stringstream ss(line);
+            string titlu, gen, temp;
+            int durata, idSala, randuri, locuri;
+            
+            getline(ss, titlu, ',');
+            getline(ss, gen, ',');
+            
+            getline(ss, temp, ',');
+            durata = stoi(temp);
+            
+            getline(ss, temp, ',');
+            idSala = stoi(temp);
+            
+            getline(ss, temp, ',');
+            randuri = stoi(temp);
+            
+            getline(ss, temp, ',');
+            locuri = stoi(temp);
+            
+            Sala s(idSala, randuri, locuri);
+            filme.push_back(Film(titlu, gen, durata, s));
+        }
+        fileFilme.close();
+    } else {
+        cout << "Avertisment: Nu s-a putut deschide fisierul Filme.txt!\n";
+    }
 
-    filme.push_back(Film("Inception", "SF", 148, s1));
-    filme.push_back(Film("Titanic", "Drama", 180, s2));
-    filme.push_back(Film("Avatar", "Actiune", 162, s3));
-    filme.push_back(Film("The Godfather", "Crima", 175, s4));
-    filme.push_back(Film("Joker", "Drama", 122, s5));
-    filme.push_back(Film("Interstellar", "SF", 169, s6));
+    ifstream fileSuveniruri("Suveniruri.txt");
+    if (fileSuveniruri.is_open()) {
+        string line;
+        while (getline(fileSuveniruri, line)) {
+            if (line.empty()) continue;
+            stringstream ss(line);
+            string nume, temp;
+            int pret;
+            
+            getline(ss, nume, ',');
+            getline(ss, temp, ',');
+            pret = stoi(temp);
+            
+            suveniruri.push_back(Suvenir(nume, pret));
+        }
+        fileSuveniruri.close();
+    } else {
+        cout << "Avertisment: Nu s-a putut deschide fisierul Suveniruri.txt!\n";
+    }
 
     int optiune = 0;
-    cout<<"Bun venit la cinematograf!"<<endl;
+    
+    cout << "\n======================================================\n";
+    cout << "   _____ _____ _   _ ______ __  __          \n";
+    cout << "  / ____|_   _| \\ | |  ____|  \\/  |   /\\    \n";
+    cout << " | |      | | |  \\| | |__  | \\  / |  /  \\   \n";
+    cout << " | |      | | | . ` |  __| | |\\/| | / /\\ \\  \n";
+    cout << " | |____ _| |_| |\\  | |____| |  | |/ ____ \\ \n";
+    cout << "  \\_____|_____|_| \\_|______|_|  |_/_/    \\_\\\n";
+    cout << "======================================================\n";
+    cout << "                BUN VENIT!                            \n";
+    cout << "======================================================\n\n";
+
     do
     {
-
-        cout << "1. Afiseaza lista de filme\n";
-        cout << "2. Rezerva un loc la film\n";
-        cout << "3. Cumpara suvenir\n";
-        cout << "4. Iesire\n";
-        cout << "Alege optiunea: ";
+        cout << "------------------------------------------------------\n";
+        cout << "                  MENIU PRINCIPAL                     \n";
+        cout << "------------------------------------------------------\n";
+        cout << "  [1] Afiseaza lista de filme\n";
+        cout << "  [2] Rezerva un loc la film\n";
+        cout << "  [3] Cumpara suvenir\n";
+        cout << "  [4] Iesire\n";
+        cout << "------------------------------------------------------\n";
+        cout << ">> Alege optiunea: ";
         cin >> optiune;
 
         switch(optiune)
