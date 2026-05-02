@@ -1,4 +1,6 @@
 #include <iostream>
+#include <iomanip>
+#include <sstream>
 #include "Film.h"
 
 using namespace std;
@@ -11,12 +13,40 @@ Film::Film(string titlu, string gen, int durata, int varstaMinima, Sala sala)
     this->varstaMinima = varstaMinima;
 }
 
-void Film::afiseaza() const {
-    cout << "Titlu: " << titlu << endl;
-    cout << "Gen: " << gen << endl;
-    cout << "Durata: " << durata << " minute" << endl;
-    cout << "Varsta minima: " << varstaMinima << "+" << endl;
-    cout << "Sala: " << sala.getIndex() << endl;
+vector<string> Film::getLiniiAfisare(int index) const {
+    vector<string> linii;
+    stringstream ss;
+    
+    string header = "  [" + to_string(index) + "]";
+    while(header.length() < 44) {
+        header += " ";
+    }
+    linii.push_back(header);
+    linii.push_back("  ┌────────────────────────────────────────┐");
+    
+    ss.str(""); ss.clear();
+    ss << "  │ Titlu: " << left << setw(32) << titlu << "│";
+    linii.push_back(ss.str());
+    
+    ss.str(""); ss.clear();
+    ss << "  │ Gen: " << left << setw(34) << gen << "│";
+    linii.push_back(ss.str());
+    
+    ss.str(""); ss.clear();
+    ss << "  │ Durata: " << left << setw(23) << durata << " minute │";
+    linii.push_back(ss.str());
+    
+    ss.str(""); ss.clear();
+    ss << "  │ Varsta: " << left << setw(31) << to_string(varstaMinima) + "+" << "│";
+    linii.push_back(ss.str());
+    
+    ss.str(""); ss.clear();
+    ss << "  │ Sala: " << left << setw(33) << sala.getIndex() << "│";
+    linii.push_back(ss.str());
+    
+    linii.push_back("  └────────────────────────────────────────┘");
+    
+    return linii;
 }
 
 Sala& Film::getSala() {

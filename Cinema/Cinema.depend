@@ -1,29 +1,36 @@
 # depslib dependency file v1.0
-1777637290 source:d:\coduri\an2_s2\proiect poo\cinematograf\cinema\film.cpp
+1777663403 source:d:\coduri\an2_s2\proiect poo\cinematograf\cinema\film.cpp
 	<iostream>
+	<iomanip>
+	<sstream>
 	"Film.h"
 
-1777637255 d:\coduri\an2_s2\proiect poo\cinematograf\cinema\film.h
+1777663170 d:\coduri\an2_s2\proiect poo\cinematograf\cinema\film.h
 	<string>
+	<vector>
 	"Sala.h"
 
-1777637317 source:d:\coduri\an2_s2\proiect poo\cinematograf\cinema\main.cpp
+1777664431 source:d:\coduri\an2_s2\proiect poo\cinematograf\cinema\main.cpp
 	<iostream>
 	<vector>
 	<fstream>
 	<sstream>
+	<iomanip>
+	<ctime>
+	<random>
+	<windows.h>
 	"Film.h"
 	"Suvenir.h"
 	<string.h>
 
-1777638563 source:d:\coduri\an2_s2\proiect poo\cinematograf\cinema\sala.cpp
+1777664719 source:d:\coduri\an2_s2\proiect poo\cinematograf\cinema\sala.cpp
 	<iostream>
 	<stdexcept>
 	<conio.h>
 	<cstdlib>
 	"Sala.h"
 
-1777636867 d:\coduri\an2_s2\proiect poo\cinematograf\cinema\sala.h
+1777663986 d:\coduri\an2_s2\proiect poo\cinematograf\cinema\sala.h
 	<vector>
 
 1777406622 source:d:\coduri\an2_s2\proiect poo\cinematograf\cinema\suvenir.cpp

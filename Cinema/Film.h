@@ -2,6 +2,7 @@
 #define FILM_H
 
 #include <string>
+#include <vector>
 #include "Sala.h"
 
 using namespace std;
@@ -16,8 +17,7 @@ private:
 
 public:
     Film(string titlu, string gen, int durata, int varstaMinima, Sala sala);
-
-    void afiseaza() const;
+    vector<string> getLiniiAfisare(int index) const;
 
     Sala& getSala();
     int getVarstaMinima() const;

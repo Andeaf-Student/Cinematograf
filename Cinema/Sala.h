@@ -20,6 +20,7 @@ public:
 
     int getIndex() const;
     int getNumarRanduri() const;
+    int getNumarColoane() const;
 };
 
 #endif
