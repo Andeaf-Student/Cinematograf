@@ -10,7 +10,7 @@
 	<vector>
 	"Sala.h"
 
-1777664431 source:d:\coduri\an2_s2\proiect poo\cinematograf\cinema\main.cpp
+1778673472 source:d:\coduri\an2_s2\proiect poo\cinematograf\cinema\main.cpp
 	<iostream>
 	<vector>
 	<fstream>
@@ -21,7 +21,9 @@
 	<windows.h>
 	"Film.h"
 	"Suvenir.h"
+	"Bilet.h"
 	<string.h>
+	<conio.h>
 
 1777664719 source:d:\coduri\an2_s2\proiect poo\cinematograf\cinema\sala.cpp
 	<iostream>
@@ -39,4 +41,12 @@
 
 1777406622 d:\coduri\an2_s2\proiect poo\cinematograf\cinema\suvenir.h
 	<string>
+
+1778673439 d:\coduri\an2_s2\proiect poo\cinematograf\cinema\bilet.h
+	<string>
+	<iostream>
+	<iomanip>
+
+1778673458 source:d:\coduri\an2_s2\proiect poo\cinematograf\cinema\bilet.cpp
+	"Bilet.h"
 

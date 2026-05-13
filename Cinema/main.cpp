@@ -12,6 +12,7 @@
 
 #include "Film.h"
 #include "Suvenir.h"
+#include "Bilet.h"
 #include <string.h>
 #include <conio.h>
 
@@ -234,6 +235,7 @@ int main()
             int nr_locuri=1;
             cin>>nr_locuri;
 
+            vector<Bilet> bileteCumparate;
             for (int i=1; i<=nr_locuri; i++)
             {
                 int rand, col;
@@ -242,7 +244,7 @@ int main()
 
                 try
                 {
-                    int nrRanduri = filme[indexFilm].getSala().getNumarRanduri(); // creează getter
+                    int nrRanduri = filme[indexFilm].getSala().getNumarRanduri(); 
 
                     int pretCalculat = 0;
                     if(rand >= 0 && rand <= 1) {
@@ -288,15 +290,11 @@ int main()
                         
                         stringstream pretSs;
                         pretSs << pretCalculat << " RON";
+
+                        stringstream dataOraSs;
+                        dataOraSs << put_time(now, "%d.%m.%Y  %H:%M");
                         
-                        cout << "\n┌─────────────────────────────────────────┐\n";
-                        cout << "│   🎬 CINEMA AURORA                      │\n";
-                        cout << "│   Film: " << left << setw(32) << filme[indexFilm].getTitlu() << "│\n";
-                        cout << "│   Data: " << put_time(now, "%d.%m.%Y  %H:%M") << setw(16) << setfill(' ') << " " << "│\n";
-                        cout << "│   Loc: " << left << setw(33) << locSs.str() << "│\n";
-                        cout << "│   Pret: " << left << setw(32) << pretSs.str() << "│\n";
-                        cout << "│   Cod: " << left << setw(33) << codBilet << "│\n";
-                        cout << "└─────────────────────────────────────────┘\n\n";
+                        bileteCumparate.emplace_back(filme[indexFilm].getTitlu(), dataOraSs.str(), locSs.str(), pretSs.str(), codBilet);
                     }
 
                     else
@@ -311,6 +309,14 @@ int main()
                 {
                     cout << "Eroare: " << e.what() << endl;
                 }
+            }
+
+            if (!bileteCumparate.empty()) {
+                cout << "\n--- BILETELE TALE ---\n";
+                for (const auto& bilet : bileteCumparate) {
+                    bilet.afiseaza();
+                }
+                cout << "\n---------------------\n";
             }
 
             filme[indexFilm].getSala().afiseazaLocuri();
