@@ -1,0 +1,661 @@
+<!DOCTYPE html>
+<html lang="ro">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Cinema Aurora - Web Experience</title>
+    <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;600;800&display=swap" rel="stylesheet">
+    <style>
+        :root {
+            --bg-deep: #0a0a0c;
+            --bg-card: #151518;
+            --primary: #f5c518;
+            --primary-glow: rgba(245, 197, 24, 0.3);
+            --text-main: #e0e0e0;
+            --text-muted: #a0a0a0;
+            --accent: #ff4d4d;
+            --success: #2ecc71;
+            --glass: rgba(255, 255, 255, 0.03);
+            --border: rgba(255, 255, 255, 0.1);
+        }
+
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+            font-family: 'Outfit', sans-serif;
+        }
+
+        body {
+            background-color: var(--bg-deep);
+            color: var(--text-main);
+            overflow-x: hidden;
+            min-height: 100vh;
+        }
+
+        /* --- Header --- */
+        header {
+            padding: 40px 20px;
+            text-align: center;
+            background: linear-gradient(to bottom, rgba(0,0,0,0.8), transparent);
+        }
+
+        .logo-container {
+            display: inline-block;
+            position: relative;
+        }
+
+        .logo-text {
+            font-size: 3rem;
+            font-weight: 800;
+            letter-spacing: 4px;
+            color: var(--primary);
+            text-shadow: 0 0 20px var(--primary-glow);
+            text-transform: uppercase;
+        }
+
+        .logo-sub {
+            font-size: 0.9rem;
+            color: var(--text-muted);
+            letter-spacing: 8px;
+            margin-top: -5px;
+        }
+
+        /* --- Main Layout --- */
+        .container {
+            max-width: 1200px;
+            margin: 0 auto;
+            padding: 20px;
+        }
+
+        .view {
+            display: none;
+            animation: fadeIn 0.6s ease-out;
+        }
+
+        .view.active {
+            display: block;
+        }
+
+        @keyframes fadeIn {
+            from { opacity: 0; transform: translateY(20px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+
+        /* --- Film Grid --- */
+        .film-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
+            gap: 30px;
+            margin-top: 40px;
+        }
+
+        .film-card {
+            background: var(--bg-card);
+            border: 1px solid var(--border);
+            border-radius: 20px;
+            padding: 30px;
+            transition: all 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+            cursor: pointer;
+            position: relative;
+            overflow: hidden;
+        }
+
+        .film-card::before {
+            content: '';
+            position: absolute;
+            top: 0; left: 0; width: 100%; height: 100%;
+            background: radial-gradient(circle at top right, var(--primary-glow), transparent);
+            opacity: 0;
+            transition: opacity 0.4s;
+        }
+
+        .film-card:hover {
+            transform: translateY(-10px) scale(1.02);
+            border-color: var(--primary);
+            box-shadow: 0 20px 40px rgba(0,0,0,0.4);
+        }
+
+        .film-card:hover::before {
+            opacity: 1;
+        }
+
+        .film-card h3 {
+            font-size: 1.5rem;
+            margin-bottom: 15px;
+            color: #fff;
+        }
+
+        .film-meta {
+            display: flex;
+            gap: 15px;
+            font-size: 0.85rem;
+            color: var(--text-muted);
+            margin-bottom: 20px;
+        }
+
+        .tag {
+            background: var(--glass);
+            padding: 4px 10px;
+            border-radius: 6px;
+            border: 1px solid var(--border);
+        }
+
+        .btn-select {
+            width: 100%;
+            padding: 12px;
+            background: var(--primary);
+            color: #000;
+            border: none;
+            border-radius: 12px;
+            font-weight: 700;
+            cursor: pointer;
+            transition: transform 0.2s;
+        }
+
+        /* --- Sala View --- */
+        .sala-header {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            margin-bottom: 40px;
+        }
+
+        .back-btn {
+            background: var(--glass);
+            color: #fff;
+            border: 1px solid var(--border);
+            padding: 10px 20px;
+            border-radius: 12px;
+            cursor: pointer;
+            font-weight: 600;
+        }
+
+        .screen {
+            width: 80%;
+            height: 10px;
+            background: linear-gradient(to bottom, var(--primary), transparent);
+            margin: 0 auto 60px;
+            border-radius: 50% / 100% 100% 0 0;
+            box-shadow: 0 20px 40px var(--primary-glow);
+            position: relative;
+        }
+
+        .screen-text {
+            position: absolute;
+            bottom: -30px;
+            left: 50%;
+            transform: translateX(-50%);
+            font-size: 0.7rem;
+            text-transform: uppercase;
+            letter-spacing: 5px;
+            color: var(--text-muted);
+        }
+
+        .seating-chart {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            gap: 12px;
+            margin-bottom: 40px;
+        }
+
+        .seat-row {
+            display: flex;
+            gap: 10px;
+            align-items: center;
+        }
+
+        .row-label {
+            width: 30px;
+            color: var(--text-muted);
+            font-weight: 600;
+        }
+
+        .seat {
+            width: 34px;
+            height: 34px;
+            background: var(--glass);
+            border: 1px solid var(--border);
+            border-radius: 8px;
+            cursor: pointer;
+            transition: all 0.2s;
+            position: relative;
+        }
+
+        .seat.available:hover {
+            background: rgba(255,255,255,0.1);
+            transform: scale(1.1);
+            border-color: var(--primary);
+        }
+
+        .seat.taken {
+            background: var(--accent);
+            opacity: 0.3;
+            cursor: not-allowed;
+        }
+
+        .seat.selected {
+            background: var(--primary);
+            box-shadow: 0 0 15px var(--primary-glow);
+            border: none;
+        }
+
+        .legend {
+            display: flex;
+            justify-content: center;
+            gap: 30px;
+            margin-top: 40px;
+        }
+
+        .legend-item {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            font-size: 0.9rem;
+            color: var(--text-muted);
+        }
+
+        /* --- Reservation Form --- */
+        .reservation-panel {
+            background: var(--bg-card);
+            border-radius: 24px;
+            padding: 40px;
+            max-width: 500px;
+            margin: 40px auto;
+            border: 1px solid var(--border);
+        }
+
+        .form-group {
+            margin-bottom: 25px;
+        }
+
+        .form-group label {
+            display: block;
+            margin-bottom: 10px;
+            color: var(--text-muted);
+        }
+
+        .form-group input {
+            width: 100%;
+            background: var(--bg-deep);
+            border: 1px solid var(--border);
+            padding: 15px;
+            border-radius: 12px;
+            color: #fff;
+            font-size: 1rem;
+        }
+
+        .order-summary {
+            background: var(--glass);
+            padding: 20px;
+            border-radius: 16px;
+            margin-bottom: 30px;
+        }
+
+        .summary-row {
+            display: flex;
+            justify-content: space-between;
+            margin-bottom: 10px;
+        }
+
+        .total-price {
+            font-size: 1.5rem;
+            font-weight: 800;
+            color: var(--primary);
+        }
+
+        /* --- Ticket --- */
+        .ticket-view {
+            text-align: center;
+        }
+
+        .ticket {
+            background: linear-gradient(135deg, #1e1e22 0%, #151518 100%);
+            width: 380px;
+            margin: 0 auto;
+            border-radius: 30px;
+            overflow: hidden;
+            border: 1px solid var(--border);
+            position: relative;
+            box-shadow: 0 40px 80px rgba(0,0,0,0.6);
+        }
+
+        .ticket-top {
+            padding: 40px;
+            border-bottom: 2px dashed var(--border);
+        }
+
+        .ticket-bottom {
+            padding: 30px 40px 40px;
+            background: rgba(0,0,0,0.2);
+        }
+
+        .ticket-title {
+            font-size: 1.8rem;
+            font-weight: 800;
+            margin-bottom: 10px;
+            color: var(--primary);
+        }
+
+        .ticket-info {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 20px;
+            margin-top: 30px;
+            text-align: left;
+        }
+
+        .info-label {
+            font-size: 0.7rem;
+            text-transform: uppercase;
+            color: var(--text-muted);
+            margin-bottom: 4px;
+        }
+
+        .info-value {
+            font-size: 1rem;
+            font-weight: 600;
+        }
+
+        .barcode {
+            margin-top: 20px;
+            height: 60px;
+            background: repeating-linear-gradient(90deg, #fff, #fff 2px, transparent 2px, transparent 4px);
+            opacity: 0.8;
+        }
+
+        .ticket-code {
+            font-family: monospace;
+            font-size: 1.2rem;
+            letter-spacing: 4px;
+            margin-top: 15px;
+            color: var(--text-muted);
+        }
+
+        /* --- Loading --- */
+        .loader {
+            display: none;
+            position: fixed;
+            top: 0; left: 0; width: 100%; height: 100%;
+            background: var(--bg-deep);
+            z-index: 1000;
+            justify-content: center;
+            align-items: center;
+            flex-direction: column;
+        }
+
+        .spinner {
+            width: 50px;
+            height: 50px;
+            border: 5px solid var(--glass);
+            border-top: 5px solid var(--primary);
+            border-radius: 50%;
+            animation: spin 1s linear infinite;
+        }
+
+        @keyframes spin { 100% { transform: rotate(360deg); } }
+
+    </style>
+</head>
+<body>
+
+    <div id="loader" class="loader">
+        <div class="spinner"></div>
+        <p style="margin-top: 20px; color: var(--primary);">Se încarcă magia...</p>
+    </div>
+
+    <header>
+        <div class="logo-container">
+            <div class="logo-text">Cinema Aurora</div>
+            <div class="logo-sub">Web Experience</div>
+        </div>
+    </header>
+
+    <div class="container">
+        
+        <!-- View 1: Film List -->
+        <div id="view-films" class="view active">
+            <h2 style="font-size: 2rem; margin-bottom: 20px;">Filme în Program</h2>
+            <div id="film-grid" class="film-grid">
+                <!-- Data populated via JS -->
+            </div>
+        </div>
+
+        <!-- View 2: Seating -->
+        <div id="view-sala" class="view">
+            <div class="sala-header">
+                <button class="back-btn" onclick="showView('view-films')">← Înapoi la filme</button>
+                <h2 id="sala-film-title">Selectează Locul</h2>
+            </div>
+            
+            <div class="screen">
+                <div class="screen-text">Ecran</div>
+            </div>
+
+            <div id="seating-chart" class="seating-chart">
+                <!-- Data populated via JS -->
+            </div>
+
+            <div class="legend">
+                <div class="legend-item"><div class="seat available"></div> Liber</div>
+                <div class="legend-item"><div class="seat taken"></div> Ocupat</div>
+                <div class="legend-item"><div class="seat selected"></div> Selectat</div>
+            </div>
+
+            <div id="reservation-controls" style="display: none; margin-top: 40px;">
+                <div class="reservation-panel">
+                    <h3 style="margin-bottom: 20px;">Detalii Rezervare</h3>
+                    <div class="order-summary">
+                        <div class="summary-row">
+                            <span>Loc selectat:</span>
+                            <span id="summary-loc" style="font-weight: 600;">-</span>
+                        </div>
+                        <div class="summary-row">
+                            <span>Pret:</span>
+                            <span id="summary-pret" class="total-price">-</span>
+                        </div>
+                    </div>
+                    <div class="form-group">
+                        <label>Numele tău</label>
+                        <input type="text" id="user-name" placeholder="Ex: Popescu Ion">
+                    </div>
+                    <button class="btn-select" style="padding: 18px; font-size: 1.1rem;" onclick="confirmReservation()">Confirmă Rezervarea</button>
+                </div>
+            </div>
+        </div>
+
+        <!-- View 3: Success / Ticket -->
+        <div id="view-ticket" class="view ticket-view">
+            <h2 style="color: var(--success); margin-bottom: 10px;">Rezervare Confirmată!</h2>
+            <p style="color: var(--text-muted); margin-bottom: 40px;">Biletul tău este gata.</p>
+            
+            <div id="final-ticket" class="ticket">
+                <div class="ticket-top">
+                    <div style="font-size: 0.8rem; color: var(--primary); letter-spacing: 4px; text-transform: uppercase; margin-bottom: 10px;">Cinema Aurora</div>
+                    <div id="t-title" class="ticket-title">Movie Title</div>
+                    <div class="ticket-info">
+                        <div>
+                            <div class="info-label">Data și Ora</div>
+                            <div id="t-date" class="info-value">12.05.2024 20:00</div>
+                        </div>
+                        <div>
+                            <div class="info-label">Loc</div>
+                            <div id="t-loc" class="info-value">Rand A, Loc 5</div>
+                        </div>
+                        <div>
+                            <div class="info-label">Client</div>
+                            <div id="t-name" class="info-value">John Doe</div>
+                        </div>
+                        <div>
+                            <div class="info-label">Preț</div>
+                            <div id="t-price" class="info-value">35 RON</div>
+                        </div>
+                    </div>
+                </div>
+                <div class="ticket-bottom">
+                    <div class="barcode"></div>
+                    <div id="t-code" class="ticket-code">#XJ792L</div>
+                </div>
+            </div>
+
+            <button class="back-btn" style="margin-top: 40px;" onclick="location.reload()">Înapoi la meniu</button>
+        </div>
+
+    </div>
+
+    <script>
+        let films = [];
+        let selectedFilm = null;
+        let selectedSeat = null;
+
+        const API_BASE = ""; // Relative to server
+
+        async function init() {
+            showLoader(true);
+            try {
+                const response = await fetch(`${API_BASE}/api/filme`);
+                films = await response.json();
+                renderFilms();
+            } catch (err) {
+                alert("Eroare la conectarea cu serverul!");
+                console.error(err);
+            }
+            showLoader(false);
+        }
+
+        function renderFilms() {
+            const grid = document.getElementById('film-grid');
+            grid.innerHTML = films.map(f => `
+                <div class="film-card" onclick="selectFilm(${f.id})">
+                    <h3>${f.titlu}</h3>
+                    <div class="film-meta">
+                        <span class="tag">${f.gen}</span>
+                        <span class="tag">${f.durata} min</span>
+                        <span class="tag">${f.varstaMinima}+</span>
+                    </div>
+                    <p style="color: var(--text-muted); font-size: 0.9rem; margin-bottom: 20px;">
+                        Experiență premium în Sala ${f.idSala}.
+                    </p>
+                    <button class="btn-select">Rezervă Loc</button>
+                </div>
+            `).join('');
+        }
+
+        async function selectFilm(id) {
+            selectedFilm = films.find(f => f.id === id);
+            selectedSeat = null;
+            document.getElementById('sala-film-title').innerText = selectedFilm.titlu;
+            document.getElementById('reservation-controls').style.display = 'none';
+            
+            showLoader(true);
+            try {
+                const response = await fetch(`${API_BASE}/api/sala/${id}`);
+                const data = await response.json();
+                renderSala(data.locuri);
+                showView('view-sala');
+            } catch (err) {
+                alert("Eroare la încărcarea sălii!");
+            }
+            showLoader(false);
+        }
+
+        function renderSala(locuri) {
+            const chart = document.getElementById('seating-chart');
+            chart.innerHTML = locuri.map((row, r) => `
+                <div class="seat-row">
+                    <div class="row-label">${String.fromCharCode(65 + r)}</div>
+                    ${row.map((taken, c) => `
+                        <div class="seat ${taken ? 'taken' : 'available'}" 
+                             onclick="selectSeat(${r}, ${c}, ${taken})"
+                             id="seat-${r}-${c}">
+                        </div>
+                    `).join('')}
+                </div>
+            `).join('');
+        }
+
+        function selectSeat(r, c, taken) {
+            if (taken) return;
+
+            // Reset previous
+            if (selectedSeat) {
+                const prev = document.getElementById(`seat-${selectedSeat.r}-${selectedSeat.c}`);
+                if (prev) prev.classList.remove('selected');
+            }
+
+            selectedSeat = { r, c };
+            const curr = document.getElementById(`seat-${r}-${c}`);
+            curr.classList.add('selected');
+
+            // Calculate price (logic from C++)
+            let price = 40;
+            if (r <= 1) price = 30;
+            else if (r <= selectedFilm.randuri - 3) price = 35; // Slight adjustment to match C++ logic
+
+            document.getElementById('summary-loc').innerText = `Randul ${String.fromCharCode(65 + r)}, Locul ${c + 1}`;
+            document.getElementById('summary-pret').innerText = `${price} RON`;
+            document.getElementById('reservation-controls').style.display = 'block';
+            
+            // Scroll to controls
+            document.getElementById('reservation-controls').scrollIntoView({ behavior: 'smooth' });
+        }
+
+        async function confirmReservation() {
+            const name = document.getElementById('user-name').value;
+            if (!name) {
+                alert("Te rugăm să introduci numele!");
+                return;
+            }
+
+            showLoader(true);
+            try {
+                const response = await fetch(`${API_BASE}/api/rezerva`, {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({
+                        filmIndex: selectedFilm.id,
+                        rand: selectedSeat.r,
+                        col: selectedSeat.c,
+                        nume: name
+                    })
+                });
+
+                if (!response.ok) {
+                    const err = await response.json();
+                    throw new Error(err.error || "Eroare la rezervare");
+                }
+
+                const ticket = await response.json();
+                showTicket(ticket);
+            } catch (err) {
+                alert(err.message);
+            }
+            showLoader(false);
+        }
+
+        function showTicket(data) {
+            document.getElementById('t-title').innerText = data.titlu;
+            document.getElementById('t-date').innerText = data.data;
+            document.getElementById('t-loc').innerText = data.loc;
+            document.getElementById('t-name').innerText = data.nume;
+            document.getElementById('t-price').innerText = `${data.pret} RON`;
+            document.getElementById('t-code').innerText = data.cod;
+            
+            showView('view-ticket');
+        }
+
+        function showView(id) {
+            document.querySelectorAll('.view').forEach(v => v.classList.remove('active'));
+            document.getElementById(id).classList.add('active');
+            window.scrollTo(0,0);
+        }
+
+        function showLoader(show) {
+            document.getElementById('loader').style.display = show ? 'flex' : 'none';
+        }
+
+        init();
+    </script>
+</body>
+</html>

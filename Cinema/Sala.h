@@ -21,6 +21,7 @@ public:
     int getIndex() const;
     int getNumarRanduri() const;
     int getNumarColoane() const;
+    const vector<vector<bool>>& getLocuri() const;
 };
 
 #endif

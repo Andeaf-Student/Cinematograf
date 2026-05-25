@@ -110,3 +110,7 @@ int Sala::getNumarRanduri() const {
 int Sala::getNumarColoane() const {
     return locuri.empty() ? 0 : (int)locuri[0].size();
 }
+
+const vector<vector<bool>>& Sala::getLocuri() const {
+    return locuri;
+}

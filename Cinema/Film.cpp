@@ -61,4 +61,12 @@ string Film::getTitlu() const {
     return titlu;
 }
 
+string Film::getGen() const {
+    return gen;
+}
+
+int Film::getDurata() const {
+    return durata;
+}
+
 

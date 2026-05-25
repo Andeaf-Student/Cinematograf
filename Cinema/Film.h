@@ -22,6 +22,8 @@ public:
     Sala& getSala();
     int getVarstaMinima() const;
     string getTitlu() const;
+    string getGen() const;
+    int getDurata() const;
 
 };
 
