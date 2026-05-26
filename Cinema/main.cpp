@@ -180,7 +180,8 @@ void startHttpServer(vector<Film>& filme, vector<Suvenir>& suveniruri) {
             json += "\"varstaMinima\":" + to_string(f.getVarstaMinima())   + ",";
             json += "\"idSala\":"       + to_string(f.getSala().getIndex())+ ",";
             json += "\"randuri\":"      + to_string(f.getSala().getNumarRanduri()) + ",";
-            json += "\"coloane\":"      + to_string(f.getSala().getNumarColoane());
+            json += "\"coloane\":"      + to_string(f.getSala().getNumarColoane()) + ",";
+            json += "\"oraRulare\":\""   + je(f.getOraRulare())              + "\"";
             json += "}";
         }
         json += "]";
@@ -202,6 +203,9 @@ void startHttpServer(vector<Film>& filme, vector<Suvenir>& suveniruri) {
         for (size_t i = 0; i < filme.size(); i++) {
             auto& f = filme[i];
             string oraRulare = f.getOraRulare();
+            if (oraRulare.length() < 5 || oraRulare[2] != ':') {
+                oraRulare = "18:00";
+            }
             int filmHour = stoi(oraRulare.substr(0, 2));
             int filmMin = stoi(oraRulare.substr(3, 2));
             int filmTotalMin = filmHour * 60 + filmMin;
@@ -609,6 +613,7 @@ void startHttpServer(vector<Film>& filme, vector<Suvenir>& suveniruri) {
                             <th>Gen</th>
                             <th>Durată</th>
                             <th>Vârstă</th>
+                            <th>Oră</th>
                             <th>Sala</th>
                             <th>Locuri</th>
                             <th>Acțiuni</th>
@@ -634,6 +639,10 @@ void startHttpServer(vector<Film>& filme, vector<Suvenir>& suveniruri) {
                     <div class="form-group">
                         <label>Vârstă Minimă</label>
                         <input type="number" id="film-varsta">
+                    </div>
+                    <div class="form-group">
+                        <label>Ora Rulării</label>
+                        <input type="time" id="film-ora" value="18:00">
                     </div>
                     <div class="form-group">
                         <label>Rânduri</label>
@@ -722,6 +731,7 @@ void startHttpServer(vector<Film>& filme, vector<Suvenir>& suveniruri) {
                     <td>${f.gen}</td>
                     <td>${f.durata} min</td>
                     <td>${f.varstaMinima}+</td>
+                    <td>${f.oraRulare || '-'}</td>
                     <td>${f.idSala}</td>
                     <td>${f.randuri}×${f.coloane}</td>
                     <td>
@@ -758,16 +768,17 @@ void startHttpServer(vector<Film>& filme, vector<Suvenir>& suveniruri) {
             const gen = document.getElementById('film-gen').value;
             const durata = parseInt(document.getElementById('film-durata').value);
             const varstaMinima = parseInt(document.getElementById('film-varsta').value);
+            const oraRulare = document.getElementById('film-ora').value;
             const randuri = parseInt(document.getElementById('film-randuri').value);
             const coloane = parseInt(document.getElementById('film-coloane').value);
 
-            if (!titlu || !gen || !durata || !varstaMinima || !randuri || !coloane) {
+            if (!titlu || !gen || !durata || !varstaMinima || !oraRulare || !randuri || !coloane) {
                 alert('Completați toate câmpurile!');
                 return;
             }
 
             const response = await apiCall('/api/admin/adauga-film', 'POST', {
-                titlu, gen, durata, varstaMinima, randuri, coloane
+                titlu, gen, durata, varstaMinima, oraRulare, randuri, coloane
             });
             
             if (response && response.ok) {
@@ -776,6 +787,7 @@ void startHttpServer(vector<Film>& filme, vector<Suvenir>& suveniruri) {
                 document.getElementById('film-gen').value = '';
                 document.getElementById('film-durata').value = '';
                 document.getElementById('film-varsta').value = '';
+                document.getElementById('film-ora').value = '18:00';
                 document.getElementById('film-randuri').value = '';
                 document.getElementById('film-coloane').value = '';
                 loadFilme();
@@ -1109,6 +1121,9 @@ void startHttpServer(vector<Film>& filme, vector<Suvenir>& suveniruri) {
             int currentTotalMin = currentHour * 60 + currentMin;
 
             string oraRulare = filme[filmIndex].getOraRulare();
+            if (oraRulare.length() < 5 || oraRulare[2] != ':') {
+                oraRulare = "18:00";
+            }
             int filmHour = stoi(oraRulare.substr(0, 2));
             int filmMin = stoi(oraRulare.substr(3, 2));
             int filmTotalMin = filmHour * 60 + filmMin;
@@ -1175,6 +1190,9 @@ int main()
             getline(ss, temp, ','); randuri      = stoi(temp);
             getline(ss, temp, ','); locuri       = stoi(temp);
             getline(ss, oraRulare, ',');
+            if (oraRulare.empty() || oraRulare.length() < 5) {
+                oraRulare = "18:00";
+            }
 
             Sala s(idSala, randuri, locuri);
             filme.push_back(Film(titlu, gen, durata, varstaMinima, s, oraRulare));

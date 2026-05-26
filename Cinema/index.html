@@ -720,86 +720,88 @@
                 </div>
             </div>
 
-        <!-- View 2: Seating -->
-        <div id="view-sala" class="view">
-            <div class="sala-header">
-                <button class="back-btn" onclick="showView('view-films')">← Înapoi la filme</button>
-                <h2 id="sala-film-title">Selectează Locul</h2>
-            </div>
-            
-            <div class="screen">
-                <div class="screen-text">Ecran</div>
-            </div>
-
-            <div id="seating-chart" class="seating-chart">
-                <!-- Data populated via JS -->
-            </div>
-
-            <div class="legend">
-                <div class="legend-item"><div class="seat available"></div> Liber</div>
-                <div class="legend-item"><div class="seat taken"></div> Ocupat</div>
-                <div class="legend-item"><div class="seat selected"></div> Selectat</div>
-            </div>
-
-            <div id="reservation-controls" style="display: none; margin-top: 40px;">
-                <div class="reservation-panel">
-                    <h3 style="margin-bottom: 20px;">Detalii Rezervare</h3>
-                    <div class="order-summary">
-                        <div class="summary-row">
-                            <span>Loc selectat:</span>
-                            <span id="summary-loc" style="font-weight: 600;">-</span>
-                        </div>
-                        <div class="summary-row">
-                            <span>Pret:</span>
-                            <span id="summary-pret" class="total-price">-</span>
-                        </div>
-                    </div>
-                    <div class="form-group">
-                        <label>Numele tău</label>
-                        <input type="text" id="user-name" placeholder="Ex: Popescu Ion">
-                    </div>
-                    <button class="btn-select" style="padding: 18px; font-size: 1.1rem;" onclick="confirmReservation()">Confirmă Rezervarea</button>
-                </div>
-            </div>
-        </div>
-
-        <!-- View 3: Success / Ticket -->
-        <div id="view-ticket" class="view ticket-view">
-            <h2 style="color: var(--success); margin-bottom: 10px;">Rezervare Confirmată!</h2>
-            <p style="color: var(--text-muted); margin-bottom: 40px;">Biletul tău este gata.</p>
-            
-            <div id="final-ticket" class="ticket">
-                <div class="ticket-top">
-                    <div style="font-size: 0.8rem; color: var(--primary); letter-spacing: 4px; text-transform: uppercase; margin-bottom: 10px;">Cinema Aurora</div>
-                    <div id="t-title" class="ticket-title">Movie Title</div>
-                    <div class="ticket-info">
-                        <div>
-                            <div class="info-label">Data și Ora</div>
-                            <div id="t-date" class="info-value">12.05.2024 20:00</div>
-                        </div>
-                        <div>
-                            <div class="info-label">Loc</div>
-                            <div id="t-loc" class="info-value">Rand A, Loc 5</div>
-                        </div>
-                        <div>
-                            <div class="info-label">Client</div>
-                            <div id="t-name" class="info-value">John Doe</div>
-                        </div>
-                        <div>
-                            <div class="info-label">Preț</div>
-                            <div id="t-price" class="info-value">35 RON</div>
-                        </div>
+            <!-- View 2: Seating -->
+            <div id="view-sala" class="view">
+                <div class="sala-header">
+                    <button class="back-btn" onclick="showView('view-films')">← Înapoi la filme</button>
+                    <div>
+                        <h2 id="sala-film-title">Selectează Locul</h2>
+                        <p id="sala-film-info" style="color: var(--text-muted); font-size: 0.9rem; margin-top: 5px;"></p>
                     </div>
                 </div>
-                <div class="ticket-bottom">
-                    <div class="barcode"></div>
-                    <div id="t-code" class="ticket-code">#XJ792L</div>
+                
+                <div class="screen">
+                    <div class="screen-text">Ecran</div>
+                </div>
+
+                <div id="seating-chart" class="seating-chart">
+                    <!-- Data populated via JS -->
+                </div>
+
+                <div class="legend">
+                    <div class="legend-item"><div class="seat available"></div> Liber</div>
+                    <div class="legend-item"><div class="seat taken"></div> Ocupat</div>
+                    <div class="legend-item"><div class="seat selected"></div> Selectat</div>
+                </div>
+
+                <div id="reservation-controls" style="display: none; margin-top: 40px;">
+                    <div class="reservation-panel">
+                        <h3 style="margin-bottom: 20px;">Detalii Rezervare</h3>
+                        <div class="order-summary">
+                            <div class="summary-row">
+                                <span>Loc selectat:</span>
+                                <span id="summary-loc" style="font-weight: 600;">-</span>
+                            </div>
+                            <div class="summary-row">
+                                <span>Pret:</span>
+                                <span id="summary-pret" class="total-price">-</span>
+                            </div>
+                        </div>
+                        <div class="form-group">
+                            <label>Numele tău</label>
+                            <input type="text" id="user-name" placeholder="Ex: Popescu Ion">
+                        </div>
+                        <button class="btn-select" style="padding: 18px; font-size: 1.1rem;" onclick="confirmReservation()">Confirmă Rezervarea</button>
+                    </div>
                 </div>
             </div>
 
-            <button class="back-btn" style="margin-top: 40px;" onclick="location.reload()">Înapoi la meniu</button>
-        </div>
+            <!-- View 3: Success / Ticket -->
+            <div id="view-ticket" class="view ticket-view">
+                <h2 style="color: var(--success); margin-bottom: 10px;">Rezervare Confirmată!</h2>
+                <p style="color: var(--text-muted); margin-bottom: 40px;">Biletul tău este gata.</p>
+                
+                <div id="final-ticket" class="ticket">
+                    <div class="ticket-top">
+                        <div style="font-size: 0.8rem; color: var(--primary); letter-spacing: 4px; text-transform: uppercase; margin-bottom: 10px;">Cinema Aurora</div>
+                        <div id="t-title" class="ticket-title">Movie Title</div>
+                        <div class="ticket-info">
+                            <div>
+                                <div class="info-label">Data și Ora</div>
+                                <div id="t-date" class="info-value">12.05.2024 20:00</div>
+                            </div>
+                            <div>
+                                <div class="info-label">Loc</div>
+                                <div id="t-loc" class="info-value">Rand A, Loc 5</div>
+                            </div>
+                            <div>
+                                <div class="info-label">Client</div>
+                                <div id="t-name" class="info-value">John Doe</div>
+                            </div>
+                            <div>
+                                <div class="info-label">Preț</div>
+                                <div id="t-price" class="info-value">35 RON</div>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="ticket-bottom">
+                        <div class="barcode"></div>
+                        <div id="t-code" class="ticket-code">#XJ792L</div>
+                    </div>
+                </div>
 
+                <button class="back-btn" style="margin-top: 40px;" onclick="location.reload()">Înapoi la meniu</button>
+            </div>
         </div>
     </section>
 
@@ -823,23 +825,26 @@
 
         const API_BASE = ""; // Relative to server
 
-        async function init() {
-            showLoader(true);
-            try {
-                const response = await fetch(`${API_BASE}/api/filme/disponibile`);
-                films = await response.json();
-                renderFilms();
-                loadSuveniruri();
-            } catch (err) {
-                alert("Eroare la conectarea cu serverul!");
-                console.error(err);
-            }
-            showLoader(false);
-        }
-
         function renderFilms() {
             const grid = document.getElementById('film-grid');
-            grid.innerHTML = films.map(f => `
+            grid.innerHTML = films.map(f => {
+                // Use locuriDisponibile from API response
+                const available = f.locuriDisponibile !== undefined ? f.locuriDisponibile : 0;
+                let statusText = '';
+                let btnDisabled = false;
+                let btnOpacity = '1';
+                let btnCursor = 'pointer';
+
+                if (available === 0) {
+                    statusText = '<span style="color: var(--accent); font-weight: 700;">Sold Out</span>';
+                    btnDisabled = true;
+                    btnOpacity = '0.5';
+                    btnCursor = 'not-allowed';
+                } else {
+                    statusText = `<span style="color: var(--success); font-weight: 700;">🪑 ${available} locuri disponibile</span>`;
+                }
+
+                return `
                 <div class="film-card" onclick="selectFilm(${f.id})" id="film-card-${f.id}">
                     <h3>${f.titlu}</h3>
                     <div class="film-meta">
@@ -853,58 +858,12 @@
                     <p style="color: var(--primary); font-size: 0.9rem; margin-bottom: 15px; font-weight: 600;">
                         🕙 ${f.oraRulare}
                     </p>
-                    <p style="color: var(--text-muted); font-size: 0.85rem; margin-bottom: 15px;" id="seats-${f.id}">Încarcă locuri...</p>
-                    <button class="btn-select" id="btn-${f.id}">Rezervă Loc</button>
+                    <p style="color: var(--text-muted); font-size: 0.85rem; margin-bottom: 15px;">
+                        ${statusText}
+                    </p>
+                    <button class="btn-select" id="btn-${f.id}" disabled="${btnDisabled}" style="opacity: ${btnOpacity}; cursor: ${btnCursor};">Rezervă Loc</button>
                 </div>
-            `).join('');
-
-            // Load available seats for each film
-            films.forEach(f => loadAvailableSeats(f.id));
-        }
-
-        async function loadAvailableSeats(filmId) {
-            try {
-                const response = await fetch(`${API_BASE}/api/sala/${filmId}`);
-                const data = await response.json();
-                const locuri = data.locuri;
-
-                let available = 0;
-                for (let r = 0; r < locuri.length; r++) {
-                    for (let c = 0; c < locuri[r].length; c++) {
-                        if (!locuri[r][c]) available++;
-                    }
-                }
-
-                const seatsEl = document.getElementById(`seats-${filmId}`);
-                const btnEl = document.getElementById(`btn-${filmId}`);
-
-                // Check if film has already started
-                const film = films.find(f => f.id === filmId);
-                const now = new Date();
-                const currentHour = now.getHours();
-                const currentMin = now.getMinutes();
-                const currentTotalMin = currentHour * 60 + currentMin;
-
-                const filmHour = parseInt(film.oraRulare.substring(0, 2));
-                const filmMin = parseInt(film.oraRulare.substring(3, 5));
-                const filmTotalMin = filmHour * 60 + filmMin;
-
-                if (currentTotalMin >= filmTotalMin) {
-                    seatsEl.innerHTML = '<span style="color: var(--text-muted); font-weight: 700;">⛔ Proiecție încheiată</span>';
-                    btnEl.disabled = true;
-                    btnEl.style.opacity = '0.5';
-                    btnEl.style.cursor = 'not-allowed';
-                } else if (available === 0) {
-                    seatsEl.innerHTML = '<span style="color: var(--accent); font-weight: 700;">Sold Out</span>';
-                    btnEl.disabled = true;
-                    btnEl.style.opacity = '0.5';
-                    btnEl.style.cursor = 'not-allowed';
-                } else {
-                    seatsEl.innerHTML = `<span style="color: var(--success); font-weight: 700;">🪑 ${available} locuri disponibile</span>`;
-                }
-            } catch (err) {
-                console.error("Eroare la încărcarea locurilor:", err);
-            }
+            `}).join('');
         }
 
         let suveniruri = [];
@@ -921,7 +880,16 @@
 
         function renderSuveniruri() {
             const grid = document.getElementById('souvenirs-grid');
-            if (!grid) return;
+            if (!grid) {
+                console.error("souvenirs-grid element not found");
+                return;
+            }
+            if (!suveniruri || suveniruri.length === 0) {
+                console.log("No souvenirs to render");
+                grid.innerHTML = '<p style="color: var(--text-muted);">Nu există suveniruri disponibile.</p>';
+                return;
+            }
+            console.log("Rendering souvenirs:", suveniruri);
             grid.innerHTML = suveniruri.map(s => `
                 <div class="souvenir-card">
                     <h3>${s.nume}</h3>
@@ -991,6 +959,12 @@
             selectedFilm = films.find(f => f.id === id);
             selectedSeat = null;
             document.getElementById('sala-film-title').innerText = selectedFilm.titlu;
+
+            // Display film time and date
+            const now = new Date();
+            const dateStr = now.toLocaleDateString('ro-RO');
+            document.getElementById('sala-film-info').innerText = `${selectedFilm.oraRulare} • ${dateStr}`;
+
             document.getElementById('reservation-controls').style.display = 'none';
 
             // Hide hero, souvenirs, admin button, cart icon
@@ -1120,9 +1094,10 @@
         async function init() {
             showLoader(true);
             try {
-                const response = await fetch(`${API_BASE}/api/filme`);
+                const response = await fetch(`${API_BASE}/api/filme/disponibile`);
                 films = await response.json();
                 renderFilms();
+                await loadSuveniruri();
             } catch (err) {
                 alert("Eroare la conectarea cu serverul!");
                 console.error(err);
