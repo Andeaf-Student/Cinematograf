@@ -356,20 +356,48 @@
         /* --- Film Grid --- */
         .film-grid {
             display: grid;
-            grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
-            gap: 30px;
+            grid-template-columns: repeat(4, 1fr);
+            gap: 25px;
             margin-top: 40px;
+        }
+
+        @media (max-width: 1024px) {
+            .film-grid {
+                grid-template-columns: repeat(3, 1fr);
+            }
+        }
+
+        @media (max-width: 600px) {
+            .film-grid {
+                grid-template-columns: repeat(2, 1fr);
+                gap: 15px;
+            }
         }
 
         .film-card {
             background: var(--bg-card);
             border: 1px solid var(--border);
             border-radius: 20px;
-            padding: 30px;
+            padding: 0 0 25px 0;
             transition: all 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.275);
             cursor: pointer;
             position: relative;
             overflow: hidden;
+            display: flex;
+            flex-direction: column;
+        }
+
+        .film-card h3,
+        .film-card .film-meta,
+        .film-card p {
+            padding-left: 20px;
+            padding-right: 20px;
+        }
+
+        .film-card .btn-select {
+            width: calc(100% - 40px);
+            margin: auto 20px 0 20px;
+            box-sizing: border-box;
         }
 
         .film-card::before {
@@ -379,12 +407,53 @@
             background: radial-gradient(circle at top right, var(--primary-glow), transparent);
             opacity: 0;
             transition: opacity 0.4s;
+            pointer-events: none;
         }
 
         .film-card:hover {
             transform: translateY(-10px) scale(1.02);
             border-color: var(--primary);
             box-shadow: 0 20px 40px rgba(0,0,0,0.4);
+        }
+
+        /* --- Poster Styles --- */
+        .poster-container {
+            width: 100%;
+            aspect-ratio: 2/3;
+            background: rgba(255, 255, 255, 0.03);
+            position: relative;
+            overflow: hidden;
+            border-top-left-radius: 19px;
+            border-top-right-radius: 19px;
+            margin-bottom: 20px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+
+        .poster-placeholder {
+            font-size: 3rem;
+            color: var(--text-muted);
+            animation: pulse-placeholder 1.5s infinite alternate;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            width: 100%;
+            height: 100%;
+        }
+
+        .poster-img {
+            width: 100%;
+            height: 100%;
+            object-fit: cover;
+            border-top-left-radius: 19px;
+            border-top-right-radius: 19px;
+            transition: opacity 0.3s ease;
+        }
+
+        @keyframes pulse-placeholder {
+            0% { opacity: 0.4; }
+            100% { opacity: 0.8; }
         }
 
         .film-card:hover::before {
@@ -672,6 +741,139 @@
 
         @keyframes spin { 100% { transform: rotate(360deg); } }
 
+        /* --- Schedule and Separator Styles --- */
+        .grid-separator {
+            grid-column: 1 / -1;
+            text-align: center;
+            margin: 40px 0 20px 0;
+            color: var(--text-muted);
+            font-size: 1.2rem;
+            font-weight: 600;
+            border-bottom: 1px dashed var(--glass);
+            padding-bottom: 15px;
+            width: 100%;
+            letter-spacing: 2px;
+            text-transform: uppercase;
+        }
+
+        .schedule-row {
+            border-bottom: 1px solid var(--border-glass);
+            transition: background 0.3s ease;
+        }
+
+        .schedule-row:hover {
+            background: rgba(255, 255, 255, 0.03);
+        }
+
+        .schedule-row.clickable {
+            cursor: pointer;
+        }
+
+        .status-badge {
+            display: inline-flex;
+            align-items: center;
+            padding: 5px 12px;
+            border-radius: 20px;
+            font-size: 0.85rem;
+            font-weight: 600;
+            gap: 5px;
+        }
+
+        .status-badge.available {
+            background: rgba(46, 204, 113, 0.15);
+            color: var(--success);
+            border: 1px solid rgba(46, 204, 113, 0.3);
+        }
+
+        .status-badge.starting-soon {
+            background: rgba(230, 126, 34, 0.15);
+            color: var(--accent);
+            border: 1px solid rgba(230, 126, 34, 0.3);
+            animation: pulse-orange 1.5s infinite alternate;
+        }
+
+        .status-badge.running-now {
+            background: rgba(46, 204, 113, 0.25);
+            color: #2ecc71;
+            border: 1px solid #2ecc71;
+        }
+
+        .status-badge.ended {
+            background: rgba(255, 255, 255, 0.05);
+            color: var(--text-muted);
+            border: 1px solid var(--border-glass);
+        }
+
+        @keyframes pulse-orange {
+            0% { box-shadow: 0 0 0 0 rgba(230, 126, 34, 0.4); }
+            100% { box-shadow: 0 0 0 8px rgba(230, 126, 34, 0); }
+        }
+
+        /* --- Tabs System Styles --- */
+        .tabs-header-container {
+            display: flex;
+            justify-content: center;
+            margin-bottom: 40px;
+            border-bottom: 1px solid var(--border-glass);
+            position: sticky;
+            top: 0;
+            background: rgba(10, 10, 12, 0.85);
+            backdrop-filter: blur(12px);
+            z-index: 100;
+            padding: 10px 0;
+        }
+
+        .tabs-bar {
+            display: flex;
+            gap: 15px;
+            max-width: 600px;
+            width: 100%;
+            justify-content: center;
+            padding: 0 15px;
+        }
+
+        .tab-btn {
+            background: none;
+            border: none;
+            color: var(--text-muted);
+            font-size: 1.05rem;
+            font-weight: 600;
+            padding: 12px 24px;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            border-bottom: 3px solid transparent;
+            outline: none;
+            letter-spacing: 0.5px;
+            white-space: nowrap;
+        }
+
+        .tab-btn:hover {
+            color: var(--text-light);
+        }
+
+        .tab-btn.active {
+            color: var(--primary);
+            border-bottom-color: var(--primary);
+            text-shadow: 0 0 10px rgba(245, 197, 24, 0.3);
+        }
+
+        .tabs-content-container {
+            position: relative;
+            width: 100%;
+            min-height: 400px;
+        }
+
+        .tab-pane {
+            display: none;
+            opacity: 0;
+            transition: opacity 0.2s ease-in-out;
+        }
+
+        .tab-pane.active {
+            display: block;
+            opacity: 1;
+        }
+
     </style>
 </head>
 <body>
@@ -714,9 +916,54 @@
         <div class="container">
             <!-- View 1: Film List -->
             <div id="view-films" class="view active">
-                <h2 style="font-size: 2rem; margin-bottom: 20px;">Filme în Program</h2>
-                <div id="film-grid" class="film-grid">
-                    <!-- Data populated via JS -->
+                <!-- Tabs Header -->
+                <div class="tabs-header-container">
+                    <div class="tabs-bar">
+                        <button class="tab-btn" id="tab-btn-schedule" onclick="switchTab('schedule')">Programul de azi</button>
+                        <button class="tab-btn active" id="tab-btn-films" onclick="switchTab('films')">Filme în program</button>
+                        <button class="tab-btn" id="tab-btn-souvenirs" onclick="switchTab('souvenirs')">Suveniruri</button>
+                    </div>
+                </div>
+
+                <!-- Tabs Content Container -->
+                <div class="tabs-content-container" id="tabs-content-container">
+                    <!-- Tab 1: Programul de azi -->
+                    <div class="tab-pane" id="pane-schedule">
+                        <div class="schedule-section">
+                            <h2 style="font-size: 2rem; margin-bottom: 20px;">🎭 Programul de azi</h2>
+                            <div class="schedule-table-wrapper" style="overflow-x: auto; background: var(--glass); border-radius: 20px; border: 1px solid var(--border); padding: 15px;">
+                                <table class="schedule-table" style="width: 100%; border-collapse: collapse; text-align: left; color: var(--text-light);">
+                                    <thead>
+                                        <tr style="border-bottom: 2px solid var(--border); color: var(--text-muted); font-size: 0.9rem; text-transform: uppercase;">
+                                            <th style="padding: 12px 15px;">Sala</th>
+                                            <th style="padding: 12px 15px;">Film</th>
+                                            <th style="padding: 12px 15px;">Ora</th>
+                                            <th style="padding: 12px 15px; text-align: center;">Status</th>
+                                        </tr>
+                                    </thead>
+                                    <tbody id="schedule-body">
+                                        <!-- Data populated via JS -->
+                                    </tbody>
+                                </table>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Tab 2: Filme în program -->
+                    <div class="tab-pane active" id="pane-films">
+                        <h2 style="font-size: 2rem; margin-bottom: 20px;">Filme în Program</h2>
+                        <div id="film-grid" class="film-grid">
+                            <!-- Data populated via JS -->
+                        </div>
+                    </div>
+
+                    <!-- Tab 3: Suveniruri -->
+                    <div class="tab-pane" id="pane-souvenirs">
+                        <h2 style="font-size: 2rem; margin-bottom: 20px;">🎁 Suveniruri</h2>
+                        <div id="souvenirs-grid" class="souvenirs-grid" style="margin-top: 20px;">
+                            <!-- Data populated via JS -->
+                        </div>
+                    </div>
                 </div>
             </div>
 
@@ -805,47 +1052,233 @@
         </div>
     </section>
 
-    <!-- Souvenirs Section -->
-    <section class="souvenirs-section">
-        <div class="container">
-            <h2 style="font-size: 2rem; margin-bottom: 20px;">🎁 Suveniruri</h2>
-            <div id="souvenirs-grid" class="souvenirs-grid">
-                <!-- Data populated via JS -->
-            </div>
-        </div>
-    </section>
-
     <script>
         let films = [];
         let selectedFilm = null;
         let selectedSeat = null;
+
+        // Tabs Configuration
+        const tabIds = ['schedule', 'films', 'souvenirs'];
+        let activeTab = 'films';
+
+        // TMDB Poster API config & cache
+        const TMDB_TOKEN = "eyJhbGciOiJIUzI1NiJ9.eyJhdWQiOiI5ZGYzN2U5YzhkYWIxYmFiMTE3Y2Y0YjBiN2Y1NTYwNSIsIm5iZiI6MTc3OTgwMTE5MS4xNiwic3ViIjoiNmExNTljNjc2YzQ1ZGMzZGU4MDUzNDZiIiwic2NvcGVzIjpbImFwaV9yZWFkIl0sInZlcnNpb24iOjF9.tLHUfMWYSW-StnMLdx2HlL3nrJJy2f9g_9lmzHpR8Dk";
+        const posterCache = {};
+
+        async function getPosterUrl(titluFilm) {
+            // Curățăm titlul în caz de accente sau alte caractere, dar funcționează perfect direct cu encodeURIComponent
+            const curatat = titluFilm.trim();
+            if (posterCache[curatat]) {
+                return posterCache[curatat];
+            }
+
+            try {
+                const url = `https://api.themoviedb.org/3/search/movie?query=${encodeURIComponent(curatat)}&language=en-US`;
+                const response = await fetch(url, {
+                    method: 'GET',
+                    headers: {
+                        'Authorization': `Bearer ${TMDB_TOKEN}`,
+                        'Accept': 'application/json'
+                    }
+                });
+
+                if (!response.ok) {
+                    throw new Error(`HTTP error! status: ${response.status}`);
+                }
+
+                const data = await response.json();
+                if (data.results && data.results.length > 0 && data.results[0].poster_path) {
+                    const posterPath = data.results[0].poster_path;
+                    const fullUrl = `https://image.tmdb.org/t/p/w500${posterPath}`;
+                    posterCache[curatat] = fullUrl;
+                    return fullUrl;
+                }
+            } catch (err) {
+                console.error(`Eroare la preluarea posterului pentru ${curatat}:`, err);
+            }
+
+            posterCache[curatat] = null;
+            return null;
+        }
+
+        function switchTab(tabId) {
+            if (!tabIds.includes(tabId)) return;
+            
+            tabIds.forEach(id => {
+                const btn = document.getElementById(`tab-btn-${id}`);
+                const pane = document.getElementById(`pane-${id}`);
+                if (btn) btn.classList.remove('active');
+                if (pane) pane.classList.remove('active');
+            });
+
+            activeTab = tabId;
+            const activeBtn = document.getElementById(`tab-btn-${tabId}`);
+            const activePane = document.getElementById(`pane-${tabId}`);
+            if (activeBtn) activeBtn.classList.add('active');
+            if (activePane) {
+                // Trigger reflow to restart transition if needed
+                activePane.classList.add('active');
+            }
+        }
 
         // Cart global variable
         window.cosDate = { bilete: [], suveniruri: [] };
 
         const API_BASE = ""; // Relative to server
 
-        function renderFilms() {
-            const grid = document.getElementById('film-grid');
-            grid.innerHTML = films.map(f => {
-                // Use locuriDisponibile from API response
-                const available = f.locuriDisponibile !== undefined ? f.locuriDisponibile : 0;
-                let statusText = '';
-                let btnDisabled = false;
-                let btnOpacity = '1';
-                let btnCursor = 'pointer';
+        function getFilmStatus(f) {
+            const now = new Date();
+            const currentHour = now.getHours();
+            const currentMin = now.getMinutes();
+            const currentTotalMin = currentHour * 60 + currentMin;
 
-                if (available === 0) {
-                    statusText = '<span style="color: var(--accent); font-weight: 700;">Sold Out</span>';
-                    btnDisabled = true;
-                    btnOpacity = '0.5';
-                    btnCursor = 'not-allowed';
+            const filmHour = parseInt(f.oraRulare.substring(0, 2));
+            const filmMin = parseInt(f.oraRulare.substring(3, 5));
+            const filmTotalMin = filmHour * 60 + filmMin;
+
+            const diff = filmTotalMin - currentTotalMin;
+
+            if (diff > 120) {
+                // STAREA 1: Disponibil, peste 2 ore
+                return {
+                    state: 1,
+                    available: true,
+                    statusText: `🕙 ${f.oraRulare}`,
+                    badgeClass: "available",
+                    badgeText: `🪑 ${f.locuriDisponibile} locuri disponibile`,
+                    subText: `Experiență premium în Sala ${f.idSala}.`,
+                    badgeHtml: `<span style="color: var(--success); font-weight: 700;">🪑 ${f.locuriDisponibile} locuri disponibile</span>`
+                };
+            } else if (diff > 0) {
+                // STAREA 2: Countdown (sub 2 ore)
+                const hours = Math.floor(diff / 60);
+                const mins = diff % 60;
+                let countdownStr = "";
+                if (hours > 0) countdownStr += `${hours}h `;
+                countdownStr += `${mins}m`;
+
+                return {
+                    state: 2,
+                    available: true,
+                    statusText: `🕙 ${f.oraRulare}`,
+                    badgeClass: "starting-soon",
+                    badgeText: `🔴 Începe în ${countdownStr}`,
+                    subText: `🪑 ${f.locuriDisponibile} locuri disponibile`,
+                    badgeHtml: `<span class="status-badge starting-soon">🔴 Începe în ${countdownStr}</span>`
+                };
+            } else if (diff >= -15) {
+                // STAREA 3: Rulează acum (sub 15 minute)
+                return {
+                    state: 3,
+                    available: false,
+                    statusText: `▶ Rulează acum`,
+                    badgeClass: "running-now",
+                    badgeText: `▶ Rulează acum`,
+                    subText: `Rezervările pentru acest film sunt închise. Același film va rula mâine la aceeași oră.`,
+                    badgeHtml: `<span class="status-badge running-now">▶ Rulează acum</span>`
+                };
+            } else {
+                // STAREA 4: Proiecție încheiată (peste 15 minute)
+                return {
+                    state: 4,
+                    available: false,
+                    statusText: `⛔ Proiecție încheiată`,
+                    badgeClass: "ended",
+                    badgeText: `⛔ Proiecție încheiată`,
+                    subText: `Revino mâine pentru același program.`,
+                    badgeHtml: `<span class="status-badge ended">⛔ Proiecție încheiată</span>`
+                };
+            }
+        }
+
+        function scrollToCard(id) {
+            const el = document.getElementById(`film-card-${id}`);
+            if (el) {
+                el.scrollIntoView({ behavior: 'smooth', block: 'center' });
+                el.style.transform = 'scale(1.03)';
+                el.style.borderColor = 'var(--primary)';
+                setTimeout(() => {
+                    el.style.transform = 'none';
+                    el.style.borderColor = 'var(--border)';
+                }, 1500);
+            }
+        }
+
+        function renderSchedule() {
+            const tbody = document.getElementById('schedule-body');
+            if (!tbody) return;
+
+            // Sort by Sala ascending, then by oraRulare ascending
+            const sortedForSchedule = [...films].sort((a, b) => {
+                if (a.idSala !== b.idSala) {
+                    return a.idSala - b.idSala;
+                }
+                return a.oraRulare.localeCompare(b.oraRulare);
+            });
+
+            tbody.innerHTML = sortedForSchedule.map(f => {
+                const status = getFilmStatus(f);
+                let badgeMarkup = "";
+                let rowClass = "schedule-row";
+                let rowAction = "";
+
+                if (status.state === 1) {
+                    badgeMarkup = `<span class="status-badge available">✅ Disponibil</span>`;
+                    rowClass += " clickable";
+                    rowAction = `onclick="scrollToCard(${f.id})"`;
+                } else if (status.state === 2) {
+                    badgeMarkup = `<span class="status-badge starting-soon">🔴 Începe în curând</span>`;
+                    rowClass += " clickable";
+                    rowAction = `onclick="scrollToCard(${f.id})"`;
+                } else if (status.state === 3) {
+                    badgeMarkup = `<span class="status-badge running-now">▶ Rulează</span>`;
                 } else {
-                    statusText = `<span style="color: var(--success); font-weight: 700;">🪑 ${available} locuri disponibile</span>`;
+                    badgeMarkup = `<span class="status-badge ended">⛔ Încheiat</span>`;
                 }
 
                 return `
+                    <tr class="${rowClass}" ${rowAction}>
+                        <td style="padding: 12px 15px; font-weight: 600;">Sala ${f.idSala}</td>
+                        <td style="padding: 12px 15px; font-weight: 600; color: #fff;">${f.titlu}</td>
+                        <td style="padding: 12px 15px; font-family: monospace; font-size: 1rem;">${f.oraRulare}</td>
+                        <td style="padding: 12px 15px; text-align: center;">${badgeMarkup}</td>
+                    </tr>
+                `;
+            }).join('');
+        }
+
+        function renderFilms() {
+            const grid = document.getElementById('film-grid');
+            if (!grid) return;
+
+            // Sort films as requested:
+            // - Available first (state 1 and 2), sorted by oraRulare asc
+            // - Unavailable last (state 3 and 4), sorted by oraRulare asc
+            const availableFilms = [];
+            const unavailableFilms = [];
+
+            films.forEach(f => {
+                const status = getFilmStatus(f);
+                if (status.available) {
+                    availableFilms.push({ f, status });
+                } else {
+                    unavailableFilms.push({ f, status });
+                }
+            });
+
+            availableFilms.sort((a, b) => a.f.oraRulare.localeCompare(b.f.oraRulare));
+            unavailableFilms.sort((a, b) => a.f.oraRulare.localeCompare(b.f.oraRulare));
+
+            let html = "";
+
+            // Render available
+            html += availableFilms.map(({ f, status }) => {
+                return `
                 <div class="film-card" onclick="selectFilm(${f.id})" id="film-card-${f.id}">
+                    <div class="poster-container" id="poster-container-${f.id}">
+                        <div class="poster-placeholder" id="poster-placeholder-${f.id}">🎬</div>
+                        <img class="poster-img" id="poster-img-${f.id}" style="display: none;" alt="${f.titlu}">
+                    </div>
                     <h3>${f.titlu}</h3>
                     <div class="film-meta">
                         <span class="tag">${f.gen}</span>
@@ -856,14 +1289,67 @@
                         Experiență premium în Sala ${f.idSala}.
                     </p>
                     <p style="color: var(--primary); font-size: 0.9rem; margin-bottom: 15px; font-weight: 600;">
-                        🕙 ${f.oraRulare}
+                        ${status.statusText}
                     </p>
                     <p style="color: var(--text-muted); font-size: 0.85rem; margin-bottom: 15px;">
-                        ${statusText}
+                        ${status.badgeHtml}
                     </p>
-                    <button class="btn-select" id="btn-${f.id}" disabled="${btnDisabled}" style="opacity: ${btnOpacity}; cursor: ${btnCursor};">Rezervă Loc</button>
+                    <button class="btn-select" id="btn-${f.id}" style="opacity: 1; cursor: pointer;">Rezervă Loc</button>
                 </div>
-            `}).join('');
+            `;}).join('');
+
+            // Render separator and unavailable if any
+            if (unavailableFilms.length > 0) {
+                html += `<div class="grid-separator">— Proiecții încheiate —</div>`;
+                html += unavailableFilms.map(({ f, status }) => {
+                    const opacity = "0.5";
+                    const cursor = "not-allowed";
+                    return `
+                    <div class="film-card" id="film-card-${f.id}" style="opacity: ${opacity}; pointer-events: none;">
+                        <div class="poster-container" id="poster-container-${f.id}">
+                            <div class="poster-placeholder" id="poster-placeholder-${f.id}">🎬</div>
+                            <img class="poster-img" id="poster-img-${f.id}" style="display: none;" alt="${f.titlu}">
+                        </div>
+                        <h3>${f.titlu}</h3>
+                        <div class="film-meta">
+                            <span class="tag">${f.gen}</span>
+                            <span class="tag">${f.durata} min</span>
+                            <span class="tag">${f.varstaMinima}+</span>
+                        </div>
+                        <p style="color: var(--text-muted); font-size: 0.9rem; margin-bottom: 20px;">
+                            ${status.subText}
+                        </p>
+                        <p style="color: var(--primary); font-size: 0.9rem; margin-bottom: 15px; font-weight: 600;">
+                            ${status.statusText}
+                        </p>
+                        <p style="color: var(--text-muted); font-size: 0.85rem; margin-bottom: 15px;">
+                            ${status.badgeHtml}
+                        </p>
+                        <button class="btn-select" id="btn-${f.id}" disabled style="opacity: 0.5; cursor: ${cursor};">Rezervă Loc</button>
+                    </div>
+                `;}).join('');
+            }
+
+            grid.innerHTML = html;
+
+            // Fetch posters asynchronously after rendering is done
+            films.forEach(f => {
+                getPosterUrl(f.titlu).then(url => {
+                    const placeholder = document.getElementById(`poster-placeholder-${f.id}`);
+                    const img = document.getElementById(`poster-img-${f.id}`);
+                    if (url && img && placeholder) {
+                        img.src = url;
+                        img.onload = () => {
+                            placeholder.style.display = 'none';
+                            img.style.display = 'block';
+                        };
+                    } else if (placeholder) {
+                        // If no URL or error, we show movie title over the placeholder
+                        placeholder.innerHTML = `<span style="font-size: 1rem; text-align: center; padding: 15px; color: var(--text-muted); font-weight: 600; line-height: 1.4;">🎬<br>${f.titlu}</span>`;
+                        placeholder.style.animation = 'none';
+                    }
+                });
+            });
         }
 
         let suveniruri = [];
@@ -957,6 +1443,11 @@
 
         async function selectFilm(id) {
             selectedFilm = films.find(f => f.id === id);
+            const status = getFilmStatus(selectedFilm);
+            if (!status.available) {
+                alert("Acest film a început deja sau s-a încheiat. Nu se mai pot face rezervări.");
+                return;
+            }
             selectedSeat = null;
             document.getElementById('sala-film-title').innerText = selectedFilm.titlu;
 
@@ -1094,15 +1585,79 @@
         async function init() {
             showLoader(true);
             try {
-                const response = await fetch(`${API_BASE}/api/filme/disponibile`);
+                const response = await fetch(`${API_BASE}/api/filme`);
                 films = await response.json();
                 renderFilms();
+                renderSchedule();
                 await loadSuveniruri();
+
+                // Live updates every minute
+                setInterval(() => {
+                    console.log("Minute elapsed: Updating live countdowns, statuses and schedule...");
+                    renderFilms();
+                    renderSchedule();
+                }, 60000);
             } catch (err) {
                 alert("Eroare la conectarea cu serverul!");
                 console.error(err);
             }
             showLoader(false);
+
+            // Touch and Touchpad gesture handling for Tab Switching
+            let touchStartX = 0;
+            let lastWheelTime = 0;
+            const contentContainer = document.getElementById('tabs-content-container');
+
+            if (contentContainer) {
+                // Swipe handling
+                contentContainer.addEventListener('touchstart', e => {
+                    touchStartX = e.touches[0].clientX;
+                }, { passive: true });
+
+                contentContainer.addEventListener('touchend', e => {
+                    const touchEndX = e.changedTouches[0].clientX;
+                    const diffX = touchEndX - touchStartX;
+
+                    if (Math.abs(diffX) > 50) {
+                        const currentIndex = tabIds.indexOf(activeTab);
+                        if (diffX < 0) {
+                            // Swipe left -> next tab
+                            if (currentIndex < tabIds.length - 1) {
+                                switchTab(tabIds[currentIndex + 1]);
+                            }
+                        } else {
+                            // Swipe right -> prev tab
+                            if (currentIndex > 0) {
+                                switchTab(tabIds[currentIndex - 1]);
+                            }
+                        }
+                    }
+                }, { passive: true });
+
+                // Touchpad / horizontal mouse wheel
+                contentContainer.addEventListener('wheel', e => {
+                    // Prevent too rapid switching by throttling wheels
+                    const now = Date.now();
+                    if (now - lastWheelTime < 300) return;
+
+                    if (Math.abs(e.deltaX) > Math.abs(e.deltaY)) {
+                        const currentIndex = tabIds.indexOf(activeTab);
+                        if (e.deltaX > 30) {
+                            // Scroll right / swipe left -> next tab
+                            if (currentIndex < tabIds.length - 1) {
+                                switchTab(tabIds[currentIndex + 1]);
+                                lastWheelTime = now;
+                            }
+                        } else if (e.deltaX < -30) {
+                            // Scroll left / swipe right -> prev tab
+                            if (currentIndex > 0) {
+                                switchTab(tabIds[currentIndex - 1]);
+                                lastWheelTime = now;
+                            }
+                        }
+                    }
+                }, { passive: true });
+            }
 
             // Scroll transitions - setup after DOM is ready
             const heroTitle = document.querySelector('.hero-title');

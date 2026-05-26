@@ -14,3 +14,4 @@ Parasite,Drama,132,18,13,11,13
 The Silence of the Lambs,Thriller,118,18,14,11,13
 Schindler's List,Drama,195,15,15,12,12
 Oppenheimer,SF,180,15,16,11,14
+Fury,Razboi,134,18,17,5,6

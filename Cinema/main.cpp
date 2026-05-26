@@ -77,6 +77,17 @@ static string parseJsonStr(const string& body, const string& key) {
     return body.substr(q1 + 1, q2 - q1 - 1);
 }
 
+static std::pair<int, int> getSalaDimensions(int idSala) {
+    if (idSala == 1) return {10, 12};
+    if (idSala == 2) return {10, 13};
+    if (idSala == 3) return {11, 12};
+    if (idSala == 4) return {10, 14};
+    if (idSala == 5) return {11, 13};
+    if (idSala == 6) return {12, 12};
+    if (idSala == 7) return {11, 14};
+    return {10, 10}; // implicit default
+}
+
 static string readFile(const string& path) {
     ifstream f(path);
     if (!f.is_open()) return "";
@@ -172,6 +183,15 @@ void startHttpServer(vector<Film>& filme, vector<Suvenir>& suveniruri) {
         for (size_t i = 0; i < filme.size(); i++) {
             if (i > 0) json += ",";
             auto& f = filme[i];
+
+            int locuriDisponibile = 0;
+            auto& locuri = f.getSala().getLocuri();
+            for (auto& rand : locuri) {
+                for (bool ocupat : rand) {
+                    if (!ocupat) locuriDisponibile++;
+                }
+            }
+
             json += "{";
             json += "\"id\":"           + to_string(i)                     + ",";
             json += "\"titlu\":\""      + je(f.getTitlu())                 + "\",";
@@ -181,7 +201,8 @@ void startHttpServer(vector<Film>& filme, vector<Suvenir>& suveniruri) {
             json += "\"idSala\":"       + to_string(f.getSala().getIndex())+ ",";
             json += "\"randuri\":"      + to_string(f.getSala().getNumarRanduri()) + ",";
             json += "\"coloane\":"      + to_string(f.getSala().getNumarColoane()) + ",";
-            json += "\"oraRulare\":\""   + je(f.getOraRulare())              + "\"";
+            json += "\"oraRulare\":\""   + je(f.getOraRulare())              + "\",";
+            json += "\"locuriDisponibile\":" + to_string(locuriDisponibile);
             json += "}";
         }
         json += "]";
@@ -634,7 +655,7 @@ void startHttpServer(vector<Film>& filme, vector<Suvenir>& suveniruri) {
                     </div>
                     <div class="form-group">
                         <label>Durată (min)</label>
-                        <input type="number" id="film-durata">
+                        <input type="number" id="film-durata" onchange="checkSaliAvailability()" onblur="checkSaliAvailability()">
                     </div>
                     <div class="form-group">
                         <label>Vârstă Minimă</label>
@@ -642,18 +663,13 @@ void startHttpServer(vector<Film>& filme, vector<Suvenir>& suveniruri) {
                     </div>
                     <div class="form-group">
                         <label>Ora Rulării</label>
-                        <input type="time" id="film-ora" value="18:00">
-                    </div>
-                    <div class="form-group">
-                        <label>Rânduri</label>
-                        <input type="number" id="film-randuri">
-                    </div>
-                    <div class="form-group">
-                        <label>Coloane</label>
-                        <input type="number" id="film-coloane">
+                        <input type="time" id="film-ora" value="18:00" onchange="checkSaliAvailability()" onblur="checkSaliAvailability()">
                     </div>
                 </div>
-                <button class="btn btn-primary" onclick="adaugaFilm()">Adaugă Film</button>
+                
+                <div id="sali-container" style="margin-top: 20px; margin-bottom: 20px; display: none; background: rgba(255, 255, 255, 0.05); padding: 15px; border-radius: 8px;"></div>
+                
+                <button class="btn btn-primary" id="btn-adauga-film" onclick="adaugaFilm()" disabled>Adaugă Film</button>
             </div>
 
             <div class="section">
@@ -763,22 +779,98 @@ void startHttpServer(vector<Film>& filme, vector<Suvenir>& suveniruri) {
             `).join('');
         }
 
+        let selectedSalaId = null;
+
+        async function checkSaliAvailability() {
+            const durata = parseInt(document.getElementById('film-durata').value);
+            const ora = document.getElementById('film-ora').value;
+            const container = document.getElementById('sali-container');
+            const btnAdauga = document.getElementById('btn-adauga-film');
+
+            if (!durata || !ora || durata <= 0 || ora.length < 5) {
+                container.style.display = 'none';
+                container.innerHTML = '';
+                btnAdauga.disabled = true;
+                selectedSalaId = null;
+                return;
+            }
+
+            const response = await apiCall(`/api/admin/sali-disponibile?ora=${ora}&durata=${durata}`);
+            if (!response || !response.ok) {
+                container.style.display = 'block';
+                container.innerHTML = '<div style="color: #ff4d4d; font-weight: bold;">Eroare la verificarea sălilor disponibile!</div>';
+                btnAdauga.disabled = true;
+                selectedSalaId = null;
+                return;
+            }
+
+            const sali = await response.json();
+            container.style.display = 'block';
+
+            if (sali.length === 0) {
+                container.innerHTML = `
+                    <div style="color: #ff4d4d; font-weight: bold; line-height: 1.5;">
+                        ⛔ Nu există săli disponibile pentru ora ${ora}.<br>
+                        Toate sălile sunt ocupate în acest interval.<br>
+                        Încearcă o altă oră sau modifică durata filmului.
+                    </div>
+                `;
+                btnAdauga.disabled = true;
+                selectedSalaId = null;
+                return;
+            }
+
+            let selectHtml = `
+                <label style="display: block; margin-bottom: 10px; font-weight: bold; color: var(--primary);">Selectează Sala Disponibilă:</label>
+                <select id="select-sala" class="form-control" style="width: 100%; padding: 10px; border-radius: 6px; background: #222; color: #fff; border: 1px solid var(--border);" onchange="onSalaSelected(this.value)">
+                    <option value="">-- Alege o sală --</option>
+            `;
+
+            sali.forEach(s => {
+                let programText = "Sală liberă toată ziua";
+                if (s.filmeAzi && s.filmeAzi.length > 0) {
+                    programText = "Program azi: " + s.filmeAzi.map(f => `${f.titlu} (${f.ora})`).join(' | ');
+                }
+                selectHtml += `
+                    <option value="${s.idSala}">
+                        Sala ${s.idSala} — ${s.locuriTotale} locuri (${programText})
+                    </option>
+                `;
+            });
+
+            selectHtml += `</select>`;
+            container.innerHTML = selectHtml;
+
+            btnAdauga.disabled = true;
+            selectedSalaId = null;
+        }
+
+        function onSalaSelected(val) {
+            const btnAdauga = document.getElementById('btn-adauga-film');
+            if (val) {
+                selectedSalaId = parseInt(val);
+                btnAdauga.disabled = false;
+            } else {
+                selectedSalaId = null;
+                btnAdauga.disabled = true;
+            }
+        }
+
         async function adaugaFilm() {
             const titlu = document.getElementById('film-titlu').value;
             const gen = document.getElementById('film-gen').value;
             const durata = parseInt(document.getElementById('film-durata').value);
             const varstaMinima = parseInt(document.getElementById('film-varsta').value);
             const oraRulare = document.getElementById('film-ora').value;
-            const randuri = parseInt(document.getElementById('film-randuri').value);
-            const coloane = parseInt(document.getElementById('film-coloane').value);
+            const idSala = selectedSalaId;
 
-            if (!titlu || !gen || !durata || !varstaMinima || !oraRulare || !randuri || !coloane) {
-                alert('Completați toate câmpurile!');
+            if (!titlu || !gen || !durata || !varstaMinima || !oraRulare || !idSala) {
+                alert('Completați toate câmpurile și selectați o sală!');
                 return;
             }
 
             const response = await apiCall('/api/admin/adauga-film', 'POST', {
-                titlu, gen, durata, varstaMinima, oraRulare, randuri, coloane
+                titlu, gen, durata, varstaMinima, oraRulare, idSala
             });
             
             if (response && response.ok) {
@@ -788,8 +880,13 @@ void startHttpServer(vector<Film>& filme, vector<Suvenir>& suveniruri) {
                 document.getElementById('film-durata').value = '';
                 document.getElementById('film-varsta').value = '';
                 document.getElementById('film-ora').value = '18:00';
-                document.getElementById('film-randuri').value = '';
-                document.getElementById('film-coloane').value = '';
+                
+                const container = document.getElementById('sali-container');
+                container.style.display = 'none';
+                container.innerHTML = '';
+                document.getElementById('btn-adauga-film').disabled = true;
+                selectedSalaId = null;
+
                 loadFilme();
             } else {
                 alert('Eroare la adăugarea filmului!');
@@ -907,6 +1004,80 @@ void startHttpServer(vector<Film>& filme, vector<Suvenir>& suveniruri) {
         res.set_content(json, "application/json");
     });
 
+    // GET /api/admin/sali-disponibile
+    svr.Get("/api/admin/sali-disponibile", [&](const httplib::Request& req, httplib::Response& res) {
+        setCors(res);
+        if (!req.has_param("ora") || !req.has_param("durata")) {
+            res.status = 400;
+            res.set_content("{\"error\":\"Parametri lipsa\"}", "application/json");
+            return;
+        }
+        string oraStr = req.get_param_value("ora");
+        int durata = stoi(req.get_param_value("durata"));
+
+        if (oraStr.length() < 5 || oraStr[2] != ':') {
+            res.status = 400;
+            res.set_content("{\"error\":\"Format ora invalid\"}", "application/json");
+            return;
+        }
+
+        int nouHour = stoi(oraStr.substr(0, 2));
+        int nouMin = stoi(oraStr.substr(3, 2));
+        int nouTotalMin = nouHour * 60 + nouMin;
+
+        lock_guard<mutex> lock(filmeMutex);
+        string json = "[";
+        bool firstSala = true;
+
+        for (int s = 1; s <= 7; s++) {
+            bool conflict = false;
+            vector<string> filmeAziJson;
+
+            for (auto& f : filme) {
+                if (f.getSala().getIndex() == s) {
+                    string exOraStr = f.getOraRulare();
+                    int exHour = stoi(exOraStr.substr(0, 2));
+                    int exMin = stoi(exOraStr.substr(3, 2));
+                    int exTotalMin = exHour * 60 + exMin;
+                    int exDurata = f.getDurata();
+
+                    // Adaugam filmul curent la lista de filme pe azi pentru aceasta sala
+                    string fJson = "{\"titlu\":\"" + je(f.getTitlu()) + "\",\"ora\":\"" + je(exOraStr) + "\",\"durata\":" + to_string(exDurata) + "}";
+                    filmeAziJson.push_back(fJson);
+
+                    // Verificare suprapunere
+                    bool noConflict = (exTotalMin + exDurata + 30 <= nouTotalMin) || (nouTotalMin + durata + 30 <= exTotalMin);
+                    if (!noConflict) {
+                        conflict = true;
+                    }
+                }
+            }
+
+            if (!conflict) {
+                if (!firstSala) json += ",";
+                firstSala = false;
+
+                auto dims = getSalaDimensions(s);
+                int locuriTotale = dims.first * dims.second;
+
+                json += "{";
+                json += "\"idSala\":" + to_string(s) + ",";
+                json += "\"randuri\":" + to_string(dims.first) + ",";
+                json += "\"coloane\":" + to_string(dims.second) + ",";
+                json += "\"locuriTotale\":" + to_string(locuriTotale) + ",";
+                json += "\"filmeAzi\":[";
+                for (size_t i = 0; i < filmeAziJson.size(); i++) {
+                    if (i > 0) json += ",";
+                    json += filmeAziJson[i];
+                }
+                json += "]";
+                json += "}";
+            }
+        }
+        json += "]";
+        res.set_content(json, "application/json");
+    });
+
     // POST /api/admin/adauga-film
     svr.Post("/api/admin/adauga-film", [&](const httplib::Request& req, httplib::Response& res) {
         if (!checkAuth(req)) {
@@ -920,17 +1091,31 @@ void startHttpServer(vector<Film>& filme, vector<Suvenir>& suveniruri) {
         string gen = parseJsonStr(req.body, "gen");
         int durata = parseJsonInt(req.body, "durata");
         int varstaMinima = parseJsonInt(req.body, "varstaMinima");
-        int randuri = parseJsonInt(req.body, "randuri");
-        int coloane = parseJsonInt(req.body, "coloane");
+        int idSala = parseJsonInt(req.body, "idSala");
         string oraRulare = parseJsonStr(req.body, "oraRulare");
 
-        if (titlu.empty() || gen.empty() || durata <= 0 || varstaMinima < 0 || randuri <= 0 || coloane <= 0 || oraRulare.empty()) {
+        if (titlu.empty() || gen.empty() || durata <= 0 || varstaMinima < 0 || idSala <= 0 || oraRulare.empty()) {
             res.status = 400;
             res.set_content("{\"error\":\"Parametri invalizi\"}", "application/json");
             return;
         }
 
-        int idSala = (int)filme.size() + 1;
+        int randuri = 10, coloane = 10;
+        bool gasit = false;
+        for (auto& f : filme) {
+            if (f.getSala().getIndex() == idSala) {
+                randuri = f.getSala().getNumarRanduri();
+                coloane = f.getSala().getNumarColoane();
+                gasit = true;
+                break;
+            }
+        }
+        if (!gasit) {
+            auto dims = getSalaDimensions(idSala);
+            randuri = dims.first;
+            coloane = dims.second;
+        }
+
         Sala s(idSala, randuri, coloane);
         filme.push_back(Film(titlu, gen, durata, varstaMinima, s, oraRulare));
         saveFilmeToFile(filme);
