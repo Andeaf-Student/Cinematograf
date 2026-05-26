@@ -1,6 +1,16 @@
-Inception,SF,148,12,1,5,5
-Titanic,Drama,180,12,2,4,4
-Avatar,Actiune,162,12,3,6,6
-The Godfather,Crima,175,18,4,3,5
-Joker,Drama,122,18,5,5,4
-Interstellar,SF,169,12,6,4,6
+Inception,SF,148,12,1,10,12,10:00
+The Dark Knight,Actiune,152,12,1,10,12,13:00
+Interstellar,SF,169,12,1,10,12,16:30
+Titanic,Drama,180,12,2,10,13,10:00
+Avatar,Actiune,162,12,2,10,13,14:00
+The Revenant,Drama,156,18,2,10,13,18:00
+The Godfather,Crima,175,18,3,11,12,11:00
+Pulp Fiction,Crima,154,18,3,11,12,15:00
+Joker,Drama,122,18,3,11,12,19:00
+Gladiator,Actiune,155,12,4,10,14,10:30
+The Matrix,SF,136,12,4,10,14,14:00
+John Wick,Actiune,101,18,4,10,14,17:30
+Parasite,Drama,132,18,5,11,13,12:00
+The Silence of the Lambs,Thriller,118,18,5,11,13,15:30
+Schindler's List,Drama,195,15,6,12,12,10:00
+Oppenheimer,SF,180,15,7,11,14,14:00

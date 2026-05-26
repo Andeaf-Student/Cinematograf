@@ -33,6 +33,277 @@
             min-height: 100vh;
         }
 
+        html, body {
+            scrollbar-width: none;
+        }
+
+        html::-webkit-scrollbar,
+        body::-webkit-scrollbar {
+            display: none;
+        }
+
+        /* --- Hero Section --- */
+        .hero {
+            height: 100vh;
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            align-items: center;
+            position: relative;
+            text-align: center;
+        }
+
+        .hero-content {
+            z-index: 2;
+        }
+
+        .hero-title {
+            font-size: 5rem;
+            font-weight: 800;
+            letter-spacing: 8px;
+            color: var(--primary);
+            text-shadow: 0 0 40px var(--primary-glow);
+            text-transform: uppercase;
+            margin-bottom: 20px;
+            opacity: 0;
+            animation: heroFadeIn 1.5s ease-out forwards;
+        }
+
+        .hero-subtitle {
+            font-size: 1.2rem;
+            color: var(--text-muted);
+            letter-spacing: 4px;
+            opacity: 0;
+            animation: heroFadeIn 1.5s ease-out 0.5s forwards;
+        }
+
+        @keyframes heroFadeIn {
+            from { opacity: 0; transform: translateY(30px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+
+        .scroll-indicator {
+            position: absolute;
+            bottom: 40px;
+            left: 40px;
+            display: flex;
+            align-items: center;
+            gap: 15px;
+            color: var(--text-muted);
+            font-size: 0.9rem;
+            opacity: 1;
+            transition: opacity 0.3s ease;
+        }
+
+        .scroll-indicator.hidden {
+            opacity: 0;
+        }
+
+        .scroll-arrow {
+            width: 30px;
+            height: 30px;
+            border-right: 3px solid var(--primary);
+            border-bottom: 3px solid var(--primary);
+            transform: rotate(45deg);
+            animation: bounce 2s infinite;
+        }
+
+        @keyframes bounce {
+            0%, 20%, 50%, 80%, 100% { transform: rotate(45deg) translateY(0); }
+            40% { transform: rotate(45deg) translateY(-10px); }
+            60% { transform: rotate(45deg) translateY(-5px); }
+        }
+
+        .admin-btn {
+            position: absolute;
+            top: 40px;
+            left: 40px;
+            padding: 12px 24px;
+            background: var(--glass);
+            color: var(--text-main);
+            border: 1px solid var(--border);
+            border-radius: 12px;
+            cursor: pointer;
+            font-weight: 600;
+            transition: all 0.3s;
+            z-index: 10;
+        }
+
+        .admin-btn:hover {
+            background: var(--primary);
+            color: #000;
+            border-color: var(--primary);
+        }
+
+        /* --- Cart Icon --- */
+        .cart-icon {
+            position: fixed;
+            top: 40px;
+            right: 40px;
+            width: 50px;
+            height: 50px;
+            background: var(--glass);
+            border: 1px solid var(--border);
+            border-radius: 12px;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            cursor: pointer;
+            transition: all 0.3s;
+            z-index: 1000;
+        }
+
+        .cart-icon:hover {
+            background: var(--primary);
+            color: #000;
+            border-color: var(--primary);
+            transform: scale(1.1);
+        }
+
+        .cart-icon svg {
+            width: 24px;
+            height: 24px;
+        }
+
+        .cart-badge {
+            position: absolute;
+            top: -8px;
+            right: -8px;
+            background: var(--accent);
+            color: #fff;
+            font-size: 0.75rem;
+            font-weight: 700;
+            width: 22px;
+            height: 22px;
+            border-radius: 50%;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            opacity: 0;
+            transition: opacity 0.3s;
+        }
+
+        .cart-badge.visible {
+            opacity: 1;
+        }
+
+        /* --- Toast Notification --- */
+        .toast {
+            position: fixed;
+            bottom: 40px;
+            right: 40px;
+            background: var(--bg-card);
+            border: 1px solid var(--border);
+            border-radius: 12px;
+            padding: 16px 24px;
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            transform: translateX(400px);
+            transition: transform 0.3s ease-out;
+            z-index: 1001;
+        }
+
+        .toast.show {
+            transform: translateX(0);
+        }
+
+        .toast-success {
+            border-color: var(--success);
+        }
+
+        .toast-error {
+            border-color: var(--accent);
+        }
+
+        /* --- Seat in Cart --- */
+        .seat.in-cart {
+            background: #3b82f6;
+            box-shadow: 0 0 15px rgba(59, 130, 246, 0.5);
+            border: none;
+        }
+
+        /* --- Hide elements when seat selection is active --- */
+        body.seat-selection-active .hero,
+        body.seat-selection-active .souvenirs-section,
+        body.seat-selection-active .admin-btn,
+        body.seat-selection-active .cart-icon {
+            display: none !important;
+        }
+
+        /* --- Films Section --- */
+        .films-section {
+            padding: 80px 20px;
+            min-height: 100vh;
+        }
+
+        /* --- Souvenirs Section --- */
+        .souvenirs-section {
+            padding: 80px 20px;
+            background: linear-gradient(to bottom, var(--bg-deep), #0d0d10);
+        }
+
+        .souvenirs-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
+            gap: 30px;
+            margin-top: 40px;
+        }
+
+        .souvenir-card {
+            background: var(--bg-card);
+            border: 1px solid var(--border);
+            border-radius: 20px;
+            padding: 30px;
+            text-align: center;
+            transition: all 0.4s ease;
+            cursor: pointer;
+            position: relative;
+            overflow: hidden;
+        }
+
+        .souvenir-card::before {
+            content: '';
+            position: absolute;
+            top: 0; left: 0; width: 100%; height: 100%;
+            background: linear-gradient(135deg, rgba(245, 197, 24, 0.1), rgba(255, 77, 77, 0.1));
+            opacity: 0;
+            transition: opacity 0.4s;
+        }
+
+        .souvenir-card:hover {
+            transform: translateY(-10px) scale(1.02);
+            border-color: var(--primary);
+            box-shadow: 0 20px 40px rgba(0,0,0,0.4);
+        }
+
+        .souvenir-card:hover::before {
+            opacity: 1;
+        }
+
+        .souvenir-card h3 {
+            font-size: 1.5rem;
+            margin-bottom: 15px;
+            color: #fff;
+            position: relative;
+            z-index: 1;
+        }
+
+        .souvenir-card p {
+            position: relative;
+            z-index: 1;
+        }
+
+        .souvenir-card .film-meta {
+            position: relative;
+            z-index: 1;
+        }
+
+        .souvenir-card .btn-select {
+            position: relative;
+            z-index: 1;
+        }
+
         /* --- Header --- */
         header {
             padding: 40px 20px;
@@ -198,11 +469,14 @@
             align-items: center;
             gap: 12px;
             margin-bottom: 40px;
+            overflow-x: auto;
+            max-width: 100%;
+            padding: 20px;
         }
 
         .seat-row {
             display: flex;
-            gap: 10px;
+            gap: 8px;
             align-items: center;
         }
 
@@ -210,17 +484,19 @@
             width: 30px;
             color: var(--text-muted);
             font-weight: 600;
+            flex-shrink: 0;
         }
 
         .seat {
-            width: 34px;
-            height: 34px;
+            width: 28px;
+            height: 28px;
             background: var(--glass);
             border: 1px solid var(--border);
-            border-radius: 8px;
+            border-radius: 6px;
             cursor: pointer;
             transition: all 0.2s;
             position: relative;
+            flex-shrink: 0;
         }
 
         .seat.available:hover {
@@ -405,22 +681,44 @@
         <p style="margin-top: 20px; color: var(--primary);">Se încarcă magia...</p>
     </div>
 
-    <header>
-        <div class="logo-container">
-            <div class="logo-text">Cinema Aurora</div>
-            <div class="logo-sub">Web Experience</div>
-        </div>
-    </header>
+    <!-- Cart Icon -->
+    <div class="cart-icon" onclick="navigateToCos()">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+            <circle cx="9" cy="21" r="1"></circle>
+            <circle cx="20" cy="21" r="1"></circle>
+            <path d="M1 1h4l2.68 13.39a2 2 0 0 0 2 1.61h9.72a2 2 0 0 0 2-1.61L23 6H6"></path>
+        </svg>
+        <div class="cart-badge" id="cart-badge">0</div>
+    </div>
 
-    <div class="container">
-        
-        <!-- View 1: Film List -->
-        <div id="view-films" class="view active">
-            <h2 style="font-size: 2rem; margin-bottom: 20px;">Filme în Program</h2>
-            <div id="film-grid" class="film-grid">
-                <!-- Data populated via JS -->
-            </div>
+    <!-- Toast Notification -->
+    <div class="toast" id="toast">
+        <span id="toast-message"></span>
+    </div>
+
+    <!-- Hero Section -->
+    <section class="hero">
+        <button class="admin-btn" onclick="window.open('/admin', '_blank')">Admin</button>
+        <div class="hero-content">
+            <h1 class="hero-title">Cinema Aurora</h1>
+            <p class="hero-subtitle">Experiența perfectă la cinema</p>
         </div>
+        <div class="scroll-indicator" id="scroll-indicator">
+            <div class="scroll-arrow"></div>
+            <span>Scroll pentru filme</span>
+        </div>
+    </section>
+
+    <!-- Films Section -->
+    <section class="films-section">
+        <div class="container">
+            <!-- View 1: Film List -->
+            <div id="view-films" class="view active">
+                <h2 style="font-size: 2rem; margin-bottom: 20px;">Filme în Program</h2>
+                <div id="film-grid" class="film-grid">
+                    <!-- Data populated via JS -->
+                </div>
+            </div>
 
         <!-- View 2: Seating -->
         <div id="view-sala" class="view">
@@ -502,21 +800,36 @@
             <button class="back-btn" style="margin-top: 40px;" onclick="location.reload()">Înapoi la meniu</button>
         </div>
 
-    </div>
+        </div>
+    </section>
+
+    <!-- Souvenirs Section -->
+    <section class="souvenirs-section">
+        <div class="container">
+            <h2 style="font-size: 2rem; margin-bottom: 20px;">🎁 Suveniruri</h2>
+            <div id="souvenirs-grid" class="souvenirs-grid">
+                <!-- Data populated via JS -->
+            </div>
+        </div>
+    </section>
 
     <script>
         let films = [];
         let selectedFilm = null;
         let selectedSeat = null;
 
+        // Cart global variable
+        window.cosDate = { bilete: [], suveniruri: [] };
+
         const API_BASE = ""; // Relative to server
 
         async function init() {
             showLoader(true);
             try {
-                const response = await fetch(`${API_BASE}/api/filme`);
+                const response = await fetch(`${API_BASE}/api/filme/disponibile`);
                 films = await response.json();
                 renderFilms();
+                loadSuveniruri();
             } catch (err) {
                 alert("Eroare la conectarea cu serverul!");
                 console.error(err);
@@ -527,7 +840,7 @@
         function renderFilms() {
             const grid = document.getElementById('film-grid');
             grid.innerHTML = films.map(f => `
-                <div class="film-card" onclick="selectFilm(${f.id})">
+                <div class="film-card" onclick="selectFilm(${f.id})" id="film-card-${f.id}">
                     <h3>${f.titlu}</h3>
                     <div class="film-meta">
                         <span class="tag">${f.gen}</span>
@@ -537,9 +850,141 @@
                     <p style="color: var(--text-muted); font-size: 0.9rem; margin-bottom: 20px;">
                         Experiență premium în Sala ${f.idSala}.
                     </p>
-                    <button class="btn-select">Rezervă Loc</button>
+                    <p style="color: var(--primary); font-size: 0.9rem; margin-bottom: 15px; font-weight: 600;">
+                        🕙 ${f.oraRulare}
+                    </p>
+                    <p style="color: var(--text-muted); font-size: 0.85rem; margin-bottom: 15px;" id="seats-${f.id}">Încarcă locuri...</p>
+                    <button class="btn-select" id="btn-${f.id}">Rezervă Loc</button>
                 </div>
             `).join('');
+
+            // Load available seats for each film
+            films.forEach(f => loadAvailableSeats(f.id));
+        }
+
+        async function loadAvailableSeats(filmId) {
+            try {
+                const response = await fetch(`${API_BASE}/api/sala/${filmId}`);
+                const data = await response.json();
+                const locuri = data.locuri;
+
+                let available = 0;
+                for (let r = 0; r < locuri.length; r++) {
+                    for (let c = 0; c < locuri[r].length; c++) {
+                        if (!locuri[r][c]) available++;
+                    }
+                }
+
+                const seatsEl = document.getElementById(`seats-${filmId}`);
+                const btnEl = document.getElementById(`btn-${filmId}`);
+
+                // Check if film has already started
+                const film = films.find(f => f.id === filmId);
+                const now = new Date();
+                const currentHour = now.getHours();
+                const currentMin = now.getMinutes();
+                const currentTotalMin = currentHour * 60 + currentMin;
+
+                const filmHour = parseInt(film.oraRulare.substring(0, 2));
+                const filmMin = parseInt(film.oraRulare.substring(3, 5));
+                const filmTotalMin = filmHour * 60 + filmMin;
+
+                if (currentTotalMin >= filmTotalMin) {
+                    seatsEl.innerHTML = '<span style="color: var(--text-muted); font-weight: 700;">⛔ Proiecție încheiată</span>';
+                    btnEl.disabled = true;
+                    btnEl.style.opacity = '0.5';
+                    btnEl.style.cursor = 'not-allowed';
+                } else if (available === 0) {
+                    seatsEl.innerHTML = '<span style="color: var(--accent); font-weight: 700;">Sold Out</span>';
+                    btnEl.disabled = true;
+                    btnEl.style.opacity = '0.5';
+                    btnEl.style.cursor = 'not-allowed';
+                } else {
+                    seatsEl.innerHTML = `<span style="color: var(--success); font-weight: 700;">🪑 ${available} locuri disponibile</span>`;
+                }
+            } catch (err) {
+                console.error("Eroare la încărcarea locurilor:", err);
+            }
+        }
+
+        let suveniruri = [];
+
+        async function loadSuveniruri() {
+            try {
+                const response = await fetch(`${API_BASE}/api/suveniruri`);
+                suveniruri = await response.json();
+                renderSuveniruri();
+            } catch (err) {
+                console.error("Eroare la încărcarea suvenirurilor:", err);
+            }
+        }
+
+        function renderSuveniruri() {
+            const grid = document.getElementById('souvenirs-grid');
+            if (!grid) return;
+            grid.innerHTML = suveniruri.map(s => `
+                <div class="souvenir-card">
+                    <h3>${s.nume}</h3>
+                    <div class="film-meta">
+                        <span class="tag">Suvenir</span>
+                    </div>
+                    <p style="color: var(--text-muted); font-size: 0.9rem; margin-bottom: 20px;">
+                        Produs exclusiv Cinema Aurora.
+                    </p>
+                    <p style="color: var(--text-muted); font-size: 0.85rem; margin-bottom: 15px;">
+                        ${s.pret} RON
+                    </p>
+                    <button class="btn-select" onclick="adaugaSuvenirInCos(${s.index})">Adaugă în coș</button>
+                </div>
+            `).join('');
+        }
+
+        function adaugaSuvenirInCos(suvenirIndex) {
+            const suvenir = suveniruri[suvenirIndex];
+            const existing = window.cosDate.suveniruri.find(s => s.suvenirIndex === suvenirIndex);
+            if (existing) {
+                existing.cantitate++;
+            } else {
+                window.cosDate.suveniruri.push({
+                    suvenirIndex: suvenirIndex,
+                    nume: suvenir.nume,
+                    pret: suvenir.pret,
+                    cantitate: 1
+                });
+            }
+            updateCartBadge();
+            showToast("Suvenir adăugat în coș 🛒");
+        }
+
+        function updateCartBadge() {
+            const badge = document.getElementById('cart-badge');
+            const total = window.cosDate.bilete.length + window.cosDate.suveniruri.reduce((sum, s) => sum + s.cantitate, 0);
+            badge.textContent = total;
+            if (total > 0) {
+                badge.classList.add('visible');
+            } else {
+                badge.classList.remove('visible');
+            }
+        }
+
+        function showToast(message, type = 'success') {
+            const toast = document.getElementById('toast');
+            const toastMessage = document.getElementById('toast-message');
+            toastMessage.textContent = message;
+            toast.className = 'toast show';
+            if (type === 'error') {
+                toast.classList.add('toast-error');
+            } else {
+                toast.classList.add('toast-success');
+            }
+            setTimeout(() => {
+                toast.classList.remove('show');
+            }, 3000);
+        }
+
+        function navigateToCos() {
+            sessionStorage.setItem('cosDate', JSON.stringify(window.cosDate));
+            window.location.href = '/cos';
         }
 
         async function selectFilm(id) {
@@ -547,7 +992,10 @@
             selectedSeat = null;
             document.getElementById('sala-film-title').innerText = selectedFilm.titlu;
             document.getElementById('reservation-controls').style.display = 'none';
-            
+
+            // Hide hero, souvenirs, admin button, cart icon
+            document.body.classList.add('seat-selection-active');
+
             showLoader(true);
             try {
                 const response = await fetch(`${API_BASE}/api/sala/${id}`);
@@ -562,17 +1010,20 @@
 
         function renderSala(locuri) {
             const chart = document.getElementById('seating-chart');
-            chart.innerHTML = locuri.map((row, r) => `
-                <div class="seat-row">
+            const middleIndex = Math.floor(locuri.length / 2);
+            chart.innerHTML = locuri.map((row, r) => {
+                const isAisleAfter = r === middleIndex;
+                return `
+                <div class="seat-row" style="${isAisleAfter ? 'margin-bottom: 30px;' : ''}">
                     <div class="row-label">${String.fromCharCode(65 + r)}</div>
                     ${row.map((taken, c) => `
-                        <div class="seat ${taken ? 'taken' : 'available'}" 
+                        <div class="seat ${taken ? 'taken' : 'available'}"
                              onclick="selectSeat(${r}, ${c}, ${taken})"
                              id="seat-${r}-${c}">
                         </div>
                     `).join('')}
                 </div>
-            `).join('');
+            `}).join('');
         }
 
         function selectSeat(r, c, taken) {
@@ -581,7 +1032,10 @@
             // Reset previous
             if (selectedSeat) {
                 const prev = document.getElementById(`seat-${selectedSeat.r}-${selectedSeat.c}`);
-                if (prev) prev.classList.remove('selected');
+                if (prev) {
+                    prev.classList.remove('selected');
+                    prev.classList.remove('in-cart');
+                }
             }
 
             selectedSeat = { r, c };
@@ -591,12 +1045,12 @@
             // Calculate price (logic from C++)
             let price = 40;
             if (r <= 1) price = 30;
-            else if (r <= selectedFilm.randuri - 3) price = 35; // Slight adjustment to match C++ logic
+            else if (r <= selectedFilm.randuri - 3) price = 35;
 
             document.getElementById('summary-loc').innerText = `Randul ${String.fromCharCode(65 + r)}, Locul ${c + 1}`;
             document.getElementById('summary-pret').innerText = `${price} RON`;
             document.getElementById('reservation-controls').style.display = 'block';
-            
+
             // Scroll to controls
             document.getElementById('reservation-controls').scrollIntoView({ behavior: 'smooth' });
         }
@@ -608,30 +1062,33 @@
                 return;
             }
 
-            showLoader(true);
-            try {
-                const response = await fetch(`${API_BASE}/api/rezerva`, {
-                    method: 'POST',
-                    headers: { 'Content-Type': 'application/json' },
-                    body: JSON.stringify({
-                        filmIndex: selectedFilm.id,
-                        rand: selectedSeat.r,
-                        col: selectedSeat.c,
-                        nume: name
-                    })
-                });
+            // Calculate price
+            let price = 40;
+            if (selectedSeat.r <= 1) price = 30;
+            else if (selectedSeat.r <= selectedFilm.randuri - 3) price = 35;
 
-                if (!response.ok) {
-                    const err = await response.json();
-                    throw new Error(err.error || "Eroare la rezervare");
-                }
+            // Add to cart instead of reserving immediately
+            window.cosDate.bilete.push({
+                filmIndex: selectedFilm.id,
+                filmTitlu: selectedFilm.titlu,
+                rand: selectedSeat.r,
+                col: selectedSeat.c,
+                pret: price,
+                nume: name
+            });
 
-                const ticket = await response.json();
-                showTicket(ticket);
-            } catch (err) {
-                alert(err.message);
-            }
-            showLoader(false);
+            // Mark seat as in cart
+            const seat = document.getElementById(`seat-${selectedSeat.r}-${selectedSeat.c}`);
+            seat.classList.remove('selected');
+            seat.classList.add('in-cart');
+
+            updateCartBadge();
+            showToast("Bilet adăugat în coș 🛒");
+
+            // Reset selection
+            selectedSeat = null;
+            document.getElementById('reservation-controls').style.display = 'none';
+            document.getElementById('user-name').value = '';
         }
 
         function showTicket(data) {
@@ -649,10 +1106,64 @@
             document.querySelectorAll('.view').forEach(v => v.classList.remove('active'));
             document.getElementById(id).classList.add('active');
             window.scrollTo(0,0);
+
+            // Remove seat-selection-active class when going back to films view
+            if (id === 'view-films') {
+                document.body.classList.remove('seat-selection-active');
+            }
         }
 
         function showLoader(show) {
             document.getElementById('loader').style.display = show ? 'flex' : 'none';
+        }
+
+        async function init() {
+            showLoader(true);
+            try {
+                const response = await fetch(`${API_BASE}/api/filme`);
+                films = await response.json();
+                renderFilms();
+            } catch (err) {
+                alert("Eroare la conectarea cu serverul!");
+                console.error(err);
+            }
+            showLoader(false);
+
+            // Scroll transitions - setup after DOM is ready
+            const heroTitle = document.querySelector('.hero-title');
+            const heroSubtitle = document.querySelector('.hero-subtitle');
+            const scrollIndicator = document.getElementById('scroll-indicator');
+
+            // Remove CSS animation after it completes to allow JS control
+            setTimeout(() => {
+                if (heroTitle) {
+                    heroTitle.style.animation = 'none';
+                    heroTitle.style.opacity = 1;
+                }
+                if (heroSubtitle) {
+                    heroSubtitle.style.animation = 'none';
+                    heroSubtitle.style.opacity = 1;
+                }
+            }, 2000);
+
+            window.addEventListener('scroll', () => {
+                const scrollY = window.scrollY;
+                const heroHeight = window.innerHeight;
+                const progress = Math.min(scrollY / (heroHeight * 0.6), 1);
+
+                // Fade out hero text
+                if (heroTitle) heroTitle.style.opacity = 1 - progress;
+                if (heroSubtitle) heroSubtitle.style.opacity = 1 - progress;
+
+                // Hide scroll indicator when scrolling
+                if (scrollIndicator) {
+                    if (progress > 0.1) {
+                        scrollIndicator.classList.add('hidden');
+                    } else {
+                        scrollIndicator.classList.remove('hidden');
+                    }
+                }
+            });
         }
 
         init();

@@ -83,8 +83,70 @@ static string readFile(const string& path) {
     return string(istreambuf_iterator<char>(f), istreambuf_iterator<char>());
 }
 
+static double parseJsonDouble(const string& body, const string& key) {
+    auto pos = body.find("\"" + key + "\"");
+    if (pos == string::npos) return -1;
+    pos = body.find(':', pos);
+    if (pos == string::npos) return -1;
+    auto vpos = body.find_first_of("-0123456789.", pos);
+    if (vpos == string::npos) return -1;
+    return stod(body.substr(vpos));
+}
+
+static bool checkAuth(const httplib::Request& req) {
+    auto auth = req.get_header_value("Authorization");
+    if (auth.empty()) return false;
+    return auth == "Bearer admin123";
+}
+
+static void saveFilmeToFile(vector<Film>& filme) {
+    // Read existing file to preserve sala dimensions
+    vector<pair<int,int>> salaDims;
+    ifstream existing("Filme.txt");
+    if (existing.is_open()) {
+        string line;
+        while (getline(existing, line)) {
+            if (line.empty()) continue;
+            stringstream ss(line);
+            string temp;
+            for (int i = 0; i < 5; i++) getline(ss, temp, ',');
+            int r, c;
+            getline(ss, temp, ','); r = stoi(temp);
+            getline(ss, temp, ','); c = stoi(temp);
+            salaDims.push_back({r, c});
+        }
+        existing.close();
+    }
+    
+    ofstream f("Filme.txt");
+    if (!f.is_open()) return;
+    for (size_t i = 0; i < filme.size(); i++) {
+        Film& film = filme[i];
+        int idSala = i + 1;
+        int randuri = (i < salaDims.size()) ? salaDims[i].first : 5;
+        int coloane = (i < salaDims.size()) ? salaDims[i].second : 6;
+        f << film.getTitlu() << ","
+          << film.getGen() << ","
+          << film.getDurata() << ","
+          << film.getVarstaMinima() << ","
+          << idSala << ","
+          << randuri << ","
+          << coloane << "\n";
+    }
+    f.close();
+}
+
+static void saveSuveniruriToFile(const vector<Suvenir>& suveniruri) {
+    ofstream f("Suveniruri.txt");
+    if (!f.is_open()) return;
+    for (const auto& s : suveniruri) {
+        f << s.getNume() << "," << (int)s.getPret() << "\n";
+    }
+    f.close();
+}
+
 // ─── HTTP Server ─────────────────────────────────────────────────────────────
-void startHttpServer(vector<Film>& filme) {
+void startHttpServer(vector<Film>& filme, vector<Suvenir>& suveniruri) {
     httplib::Server svr;
 
     auto setCors = [](httplib::Response& res) {
@@ -120,6 +182,56 @@ void startHttpServer(vector<Film>& filme) {
             json += "\"randuri\":"      + to_string(f.getSala().getNumarRanduri()) + ",";
             json += "\"coloane\":"      + to_string(f.getSala().getNumarColoane());
             json += "}";
+        }
+        json += "]";
+        setCors(res);
+        res.set_content(json, "application/json");
+    });
+
+    // GET /api/filme/disponibile
+    svr.Get("/api/filme/disponibile", [&](const httplib::Request&, httplib::Response& res) {
+        lock_guard<mutex> lock(filmeMutex);
+        time_t now = time(nullptr);
+        tm* local = localtime(&now);
+        int currentHour = local->tm_hour;
+        int currentMin = local->tm_min;
+        int currentTotalMin = currentHour * 60 + currentMin;
+
+        string json = "[";
+        bool first = true;
+        for (size_t i = 0; i < filme.size(); i++) {
+            auto& f = filme[i];
+            string oraRulare = f.getOraRulare();
+            int filmHour = stoi(oraRulare.substr(0, 2));
+            int filmMin = stoi(oraRulare.substr(3, 2));
+            int filmTotalMin = filmHour * 60 + filmMin;
+
+            if (currentTotalMin < filmTotalMin) {
+                if (!first) json += ",";
+                first = false;
+
+                // Calculate available seats
+                int locuriDisponibile = 0;
+                auto& locuri = f.getSala().getLocuri();
+                for (auto& rand : locuri) {
+                    for (bool ocupat : rand) {
+                        if (!ocupat) locuriDisponibile++;
+                    }
+                }
+
+                json += "{";
+                json += "\"id\":"           + to_string(i)                     + ",";
+                json += "\"titlu\":\""      + je(f.getTitlu())                 + "\",";
+                json += "\"gen\":\""        + je(f.getGen())                   + "\",";
+                json += "\"durata\":"       + to_string(f.getDurata())         + ",";
+                json += "\"varstaMinima\":" + to_string(f.getVarstaMinima())   + ",";
+                json += "\"idSala\":"       + to_string(f.getSala().getIndex())+ ",";
+                json += "\"randuri\":"      + to_string(f.getSala().getNumarRanduri()) + ",";
+                json += "\"coloane\":"      + to_string(f.getSala().getNumarColoane()) + ",";
+                json += "\"oraRulare\":\""   + je(oraRulare)                    + "\",";
+                json += "\"locuriDisponibile\":" + to_string(locuriDisponibile);
+                json += "}";
+            }
         }
         json += "]";
         setCors(res);
@@ -198,6 +310,832 @@ void startHttpServer(vector<Film>& filme) {
         res.set_content(json, "application/json");
     });
 
+    // ─── Admin Endpoints ───────────────────────────────────────────────────────
+    
+    // GET /cos - serve cart page
+    svr.Get("/cos", [](const httplib::Request&, httplib::Response& res) {
+        string html = R"HTMLDELIMITER(<!DOCTYPE html>
+<html lang="ro">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Cinema Aurora - Coș</title>
+    <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;600;800&display=swap" rel="stylesheet">
+    <style>
+        :root {
+            --bg-deep: #0a0a0c;
+            --bg-card: #151518;
+            --primary: #f5c518;
+            --primary-glow: rgba(245, 197, 24, 0.3);
+            --text-main: #e0e0e0;
+            --text-muted: #a0a0a0;
+            --accent: #ff4d4d;
+            --success: #2ecc71;
+            --glass: rgba(255, 255, 255, 0.03);
+            --border: rgba(255, 255, 255, 0.1);
+        }
+        * { margin: 0; padding: 0; box-sizing: border-box; font-family: 'Outfit', sans-serif; }
+        body { background-color: var(--bg-deep); color: var(--text-main); min-height: 100vh; padding: 20px; }
+        header { display: flex; align-items: center; padding: 20px; margin-bottom: 30px; }
+        .back-btn { padding: 10px 20px; background: var(--glass); color: #fff; border: 1px solid var(--border); border-radius: 12px; cursor: pointer; font-weight: 600; transition: all 0.3s; }
+        .back-btn:hover { background: var(--primary); color: #000; border-color: var(--primary); }
+        .page-title { font-size: 2rem; font-weight: 800; margin-left: 20px; color: var(--primary); }
+        .container { max-width: 1200px; margin: 0 auto; }
+        .section { background: var(--bg-card); border: 1px solid var(--border); border-radius: 20px; padding: 30px; margin-bottom: 30px; }
+        .section-title { font-size: 1.5rem; font-weight: 700; margin-bottom: 20px; color: var(--primary); }
+        table { width: 100%; border-collapse: collapse; }
+        th, td { padding: 15px; text-align: left; border-bottom: 1px solid var(--border); }
+        th { color: var(--text-muted); font-weight: 600; text-transform: uppercase; font-size: 0.8rem; }
+        .btn { padding: 10px 20px; border: none; border-radius: 8px; cursor: pointer; font-weight: 600; transition: all 0.2s; }
+        .btn-danger { background: var(--accent); color: #fff; }
+        .btn-danger:hover { opacity: 0.8; }
+        .btn-primary { background: var(--primary); color: #000; padding: 15px 40px; font-size: 1.1rem; }
+        .btn-primary:hover { opacity: 0.8; }
+        .total-section { text-align: right; padding: 20px; }
+        .total-price { font-size: 2rem; font-weight: 800; color: var(--primary); }
+        .modal { position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.8); display: flex; justify-content: center; align-items: center; z-index: 1000; }
+        .modal-content { background: var(--bg-card); border: 1px solid var(--border); border-radius: 20px; padding: 40px; text-align: center; max-width: 400px; }
+        .modal-content h2 { margin-bottom: 20px; }
+        .modal-content p { color: var(--text-muted); margin-bottom: 20px; }
+        .modal-btn { padding: 15px 40px; background: var(--primary); color: #000; border: none; border-radius: 10px; font-size: 1.1rem; font-weight: 700; cursor: pointer; }
+        .hidden { display: none !important; }
+        .empty-cart { text-align: center; padding: 60px 20px; color: var(--text-muted); }
+    </style>
+</head>
+<body>
+    <header>
+        <button class="back-btn" onclick="window.location.href='/'">← Înapoi</button>
+        <h1 class="page-title">🛒 Coșul tău</h1>
+    </header>
+
+    <div class="container">
+        <div class="section" id="bilete-section">
+            <h2 class="section-title">BILETE</h2>
+            <table id="bilete-table">
+                <thead>
+                    <tr>
+                        <th>Film</th>
+                        <th>Loc</th>
+                        <th>Preț</th>
+                        <th>Șterge</th>
+                    </tr>
+                </thead>
+                <tbody id="bilete-body"></tbody>
+            </table>
+        </div>
+
+        <div class="section" id="suveniruri-section">
+            <h2 class="section-title">SUVENIRURI</h2>
+            <table id="suveniruri-table">
+                <thead>
+                    <tr>
+                        <th>Nume</th>
+                        <th>Cantitate</th>
+                        <th>Preț</th>
+                        <th>Șterge</th>
+                    </tr>
+                </thead>
+                <tbody id="suveniruri-body"></tbody>
+            </table>
+        </div>
+
+        <div class="section total-section">
+            <p style="color: var(--text-muted);">TOTAL:</p>
+            <div class="total-price" id="total-price">0 lei</div>
+            <button class="btn btn-primary" style="margin-top: 20px;" onclick="finalizeazaComanda()">Finalizează comanda</button>
+        </div>
+    </div>
+
+    <div class="modal hidden" id="success-modal">
+        <div class="modal-content">
+            <h2 style="color: var(--success);">✅ Tranzacție realizată cu succes!</h2>
+            <p>Biletele tale au fost rezervate.</p>
+            <button class="modal-btn" onclick="inchideModal()">OK</button>
+        </div>
+    </div>
+
+    <div class="modal hidden" id="error-modal">
+        <div class="modal-content">
+            <h2 style="color: var(--accent);">❌ Eroare</h2>
+            <p id="error-message"></p>
+            <button class="modal-btn" onclick="inchideModal()">OK</button>
+        </div>
+    </div>
+
+    <script>
+        // Load cart from sessionStorage
+        const cartData = sessionStorage.getItem('cosDate');
+        window.cosDate = cartData ? JSON.parse(cartData) : { bilete: [], suveniruri: [] };
+
+        function renderCart() {
+            const bileteBody = document.getElementById('bilete-body');
+            const suveniruriBody = document.getElementById('suveniruri-body');
+            const bileteSection = document.getElementById('bilete-section');
+            const suveniruriSection = document.getElementById('suveniruri-section');
+
+            // Render tickets
+            if (window.cosDate.bilete.length === 0) {
+                bileteSection.classList.add('hidden');
+            } else {
+                bileteSection.classList.remove('hidden');
+                bileteBody.innerHTML = window.cosDate.bilete.map((b, i) => `
+                    <tr>
+                        <td>${b.filmTitlu}</td>
+                        <td>Rand ${String.fromCharCode(65 + b.rand)}, Loc ${b.col + 1}</td>
+                        <td>${b.pret} RON</td>
+                        <td><button class="btn btn-danger" onclick="stergeBilet(${i})">Șterge</button></td>
+                    </tr>
+                `).join('');
+            }
+
+            // Render souvenirs
+            if (window.cosDate.suveniruri.length === 0) {
+                suveniruriSection.classList.add('hidden');
+            } else {
+                suveniruriSection.classList.remove('hidden');
+                suveniruriBody.innerHTML = window.cosDate.suveniruri.map((s, i) => `
+                    <tr>
+                        <td>${s.nume}</td>
+                        <td>${s.cantitate}</td>
+                        <td>${s.pret * s.cantitate} RON</td>
+                        <td><button class="btn btn-danger" onclick="stergeSuvenir(${i})">Șterge</button></td>
+                    </tr>
+                `).join('');
+            }
+
+            // Calculate total
+            let total = 0;
+            window.cosDate.bilete.forEach(b => total += b.pret);
+            window.cosDate.suveniruri.forEach(s => total += s.pret * s.cantitate);
+            document.getElementById('total-price').textContent = total + ' lei';
+
+            // Show empty cart message
+            if (window.cosDate.bilete.length === 0 && window.cosDate.suveniruri.length === 0) {
+                document.querySelector('.container').innerHTML = '<div class="empty-cart"><h2>Coșul tău este gol</h2><p>Adaugă bilete sau suveniruri pentru a continua.</p></div>';
+            }
+        }
+
+        function stergeBilet(index) {
+            window.cosDate.bilete.splice(index, 1);
+            salveazaCos();
+            renderCart();
+        }
+
+        function stergeSuvenir(index) {
+            window.cosDate.suveniruri.splice(index, 1);
+            salveazaCos();
+            renderCart();
+        }
+
+        function salveazaCos() {
+            sessionStorage.setItem('cosDate', JSON.stringify(window.cosDate));
+        }
+
+        async function finalizeazaComanda() {
+            const response = await fetch('/api/cos/finalizeaza', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({
+                    bilete: window.cosDate.bilete.map(b => ({ filmIndex: b.filmIndex, rand: b.rand, col: b.col })),
+                    suveniruri: window.cosDate.suveniruri.map(s => ({ suvenirIndex: s.suvenirIndex, cantitate: s.cantitate }))
+                })
+            });
+
+            const data = await response.json();
+            if (data.succes) {
+                document.getElementById('success-modal').classList.remove('hidden');
+            } else {
+                document.getElementById('error-message').textContent = data.eroare;
+                document.getElementById('error-modal').classList.remove('hidden');
+            }
+        }
+
+        function inchideModal() {
+            document.getElementById('success-modal').classList.add('hidden');
+            document.getElementById('error-modal').classList.add('hidden');
+
+            // If success, clear cart and redirect
+            if (!document.getElementById('success-modal').classList.contains('hidden')) {
+                window.cosDate = { bilete: [], suveniruri: [] };
+                salveazaCos();
+                window.location.href = '/';
+            }
+        }
+
+        renderCart();
+    </script>
+</body>
+</html>)HTMLDELIMITER";
+        res.set_content(html, "text/html; charset=utf-8");
+    });
+
+    // GET /admin - serve admin page
+    svr.Get("/admin", [](const httplib::Request&, httplib::Response& res) {
+        string html = R"HTMLDELIMITER(<!DOCTYPE html>
+<html lang="ro">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Cinema Aurora - Admin</title>
+    <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;600;800&display=swap" rel="stylesheet">
+    <style>
+        :root {
+            --bg-deep: #0a0a0c;
+            --bg-card: #151518;
+            --primary: #f5c518;
+            --primary-glow: rgba(245, 197, 24, 0.3);
+            --text-main: #e0e0e0;
+            --text-muted: #a0a0a0;
+            --accent: #ff4d4d;
+            --success: #2ecc71;
+            --glass: rgba(255, 255, 255, 0.03);
+            --border: rgba(255, 255, 255, 0.1);
+        }
+        * { margin: 0; padding: 0; box-sizing: border-box; font-family: 'Outfit', sans-serif; }
+        body { background-color: var(--bg-deep); color: var(--text-main); min-height: 100vh; padding: 20px; }
+        header { text-align: center; padding: 40px 20px; position: relative; }
+        .back-btn { position: absolute; left: 20px; top: 50%; transform: translateY(-50%); padding: 10px 20px; background: var(--glass); color: #fff; border: 1px solid var(--border); border-radius: 12px; cursor: pointer; font-weight: 600; transition: all 0.3s; }
+        .back-btn:hover { background: var(--primary); color: #000; border-color: var(--primary); }
+        .logo-text { font-size: 2.5rem; font-weight: 800; letter-spacing: 4px; color: var(--primary); text-shadow: 0 0 20px var(--primary-glow); text-transform: uppercase; }
+        .container { max-width: 1400px; margin: 0 auto; }
+        .section { background: var(--bg-card); border: 1px solid var(--border); border-radius: 20px; padding: 30px; margin-bottom: 30px; }
+        .section-title { font-size: 1.8rem; font-weight: 700; margin-bottom: 20px; color: var(--primary); }
+        table { width: 100%; border-collapse: collapse; margin-bottom: 20px; }
+        th, td { padding: 12px; text-align: left; border-bottom: 1px solid var(--border); }
+        th { color: var(--text-muted); font-weight: 600; text-transform: uppercase; font-size: 0.8rem; }
+        tr:hover { background: var(--glass); }
+        .btn { padding: 10px 20px; border: none; border-radius: 8px; cursor: pointer; font-weight: 600; transition: all 0.2s; }
+        .btn-danger { background: var(--accent); color: #fff; }
+        .btn-danger:hover { opacity: 0.8; }
+        .btn-success { background: var(--success); color: #fff; }
+        .btn-success:hover { opacity: 0.8; }
+        .btn-primary { background: var(--primary); color: #000; }
+        .btn-primary:hover { opacity: 0.8; }
+        .form-row { display: grid; grid-template-columns: repeat(auto-fit, minmax(150px, 1fr)); gap: 15px; margin-bottom: 20px; }
+        .form-group input { width: 100%; background: var(--bg-deep); border: 1px solid var(--border); padding: 12px; border-radius: 8px; color: #fff; font-size: 1rem; }
+        .form-group label { display: block; margin-bottom: 8px; color: var(--text-muted); font-size: 0.9rem; }
+        .price-input { width: 80px !important; }
+        #password-modal { position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: var(--bg-deep); display: flex; justify-content: center; align-items: center; z-index: 1000; }
+        .modal-content { background: var(--bg-card); border: 1px solid var(--border); border-radius: 20px; padding: 40px; text-align: center; }
+        .modal-content h2 { color: var(--primary); margin-bottom: 20px; }
+        .modal-content input { width: 100%; max-width: 300px; background: var(--bg-deep); border: 1px solid var(--border); padding: 15px; border-radius: 10px; color: #fff; font-size: 1.2rem; margin-bottom: 20px; }
+        .modal-content button { padding: 15px 40px; background: var(--primary); color: #000; border: none; border-radius: 10px; font-size: 1.1rem; font-weight: 700; cursor: pointer; }
+        .hidden { display: none !important; }
+    </style>
+</head>
+<body>
+    <div id="password-modal">
+        <div class="modal-content">
+            <h2>Admin Panel</h2>
+            <input type="password" id="password-input" placeholder="Introdu parola...">
+            <button onclick="checkPassword()">Accesează</button>
+        </div>
+    </div>
+
+    <div id="admin-content" class="hidden">
+        <header>
+            <button class="back-btn" onclick="window.location.href='/'">← Înapoi</button>
+            <div class="logo-text">Cinema Aurora - Admin</div>
+        </header>
+
+        <div class="container">
+            <div class="section">
+                <h2 class="section-title">FILME</h2>
+                <table id="filme-table">
+                    <thead>
+                        <tr>
+                            <th>#</th>
+                            <th>Titlu</th>
+                            <th>Gen</th>
+                            <th>Durată</th>
+                            <th>Vârstă</th>
+                            <th>Sala</th>
+                            <th>Locuri</th>
+                            <th>Acțiuni</th>
+                        </tr>
+                    </thead>
+                    <tbody></tbody>
+                </table>
+                
+                <h3 style="margin-top: 30px; margin-bottom: 15px; color: var(--text-muted);">Adaugă Film Nou</h3>
+                <div class="form-row">
+                    <div class="form-group">
+                        <label>Titlu</label>
+                        <input type="text" id="film-titlu">
+                    </div>
+                    <div class="form-group">
+                        <label>Gen</label>
+                        <input type="text" id="film-gen">
+                    </div>
+                    <div class="form-group">
+                        <label>Durată (min)</label>
+                        <input type="number" id="film-durata">
+                    </div>
+                    <div class="form-group">
+                        <label>Vârstă Minimă</label>
+                        <input type="number" id="film-varsta">
+                    </div>
+                    <div class="form-group">
+                        <label>Rânduri</label>
+                        <input type="number" id="film-randuri">
+                    </div>
+                    <div class="form-group">
+                        <label>Coloane</label>
+                        <input type="number" id="film-coloane">
+                    </div>
+                </div>
+                <button class="btn btn-primary" onclick="adaugaFilm()">Adaugă Film</button>
+            </div>
+
+            <div class="section">
+                <h2 class="section-title">SUVENIRURI</h2>
+                <table id="suveniruri-table">
+                    <thead>
+                        <tr>
+                            <th>#</th>
+                            <th>Nume</th>
+                            <th>Preț (RON)</th>
+                            <th>Acțiuni</th>
+                        </tr>
+                    </thead>
+                    <tbody></tbody>
+                </table>
+                
+                <h3 style="margin-top: 30px; margin-bottom: 15px; color: var(--text-muted);">Adaugă Suvenir Nou</h3>
+                <div class="form-row">
+                    <div class="form-group">
+                        <label>Nume</label>
+                        <input type="text" id="suvenir-nume">
+                    </div>
+                    <div class="form-group">
+                        <label>Preț (RON)</label>
+                        <input type="number" id="suvenir-pret">
+                    </div>
+                </div>
+                <button class="btn btn-primary" onclick="adaugaSuvenir()">Adaugă Suvenir</button>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        const API_BASE = '';
+        const AUTH_TOKEN = 'admin123';
+
+        function checkPassword() {
+            const password = document.getElementById('password-input').value;
+            if (password === 'admin123') {
+                document.getElementById('password-modal').classList.add('hidden');
+                document.getElementById('admin-content').classList.remove('hidden');
+                loadFilme();
+                loadSuveniruri();
+            } else {
+                alert('Parolă incorectă!');
+            }
+        }
+
+        async function apiCall(endpoint, method = 'GET', body = null) {
+            const headers = {
+                'Content-Type': 'application/json',
+                'Authorization': `Bearer ${AUTH_TOKEN}`
+            };
+            const options = { method, headers };
+            if (body) options.body = JSON.stringify(body);
+            
+            const response = await fetch(`${API_BASE}${endpoint}`, options);
+            if (response.status === 401) {
+                alert('Neautorizat!');
+                return null;
+            }
+            return response;
+        }
+
+        async function loadFilme() {
+            const response = await apiCall('/api/filme');
+            if (!response) return;
+            const filme = await response.json();
+            
+            const tbody = document.querySelector('#filme-table tbody');
+            tbody.innerHTML = filme.map((f, i) => `
+                <tr>
+                    <td>${i}</td>
+                    <td>${f.titlu}</td>
+                    <td>${f.gen}</td>
+                    <td>${f.durata} min</td>
+                    <td>${f.varstaMinima}+</td>
+                    <td>${f.idSala}</td>
+                    <td>${f.randuri}×${f.coloane}</td>
+                    <td>
+                        <button class="btn btn-danger" onclick="stergeFilm(${i})">Șterge</button>
+                        <button class="btn btn-success" onclick="resetSala(${i})">Reset Sală</button>
+                    </td>
+                </tr>
+            `).join('');
+        }
+
+        async function loadSuveniruri() {
+            const response = await apiCall('/api/admin/suveniruri');
+            if (!response) return;
+            const suveniruri = await response.json();
+            
+            const tbody = document.querySelector('#suveniruri-table tbody');
+            tbody.innerHTML = suveniruri.map((s, i) => `
+                <tr>
+                    <td>${i}</td>
+                    <td>${s.nume}</td>
+                    <td>
+                        <input type="number" class="price-input" id="suvenir-pret-${i}" value="${s.pret}">
+                    </td>
+                    <td>
+                        <button class="btn btn-success" onclick="modificaSuvenir(${i})">Salvează</button>
+                        <button class="btn btn-danger" onclick="stergeSuvenir(${i})">Șterge</button>
+                    </td>
+                </tr>
+            `).join('');
+        }
+
+        async function adaugaFilm() {
+            const titlu = document.getElementById('film-titlu').value;
+            const gen = document.getElementById('film-gen').value;
+            const durata = parseInt(document.getElementById('film-durata').value);
+            const varstaMinima = parseInt(document.getElementById('film-varsta').value);
+            const randuri = parseInt(document.getElementById('film-randuri').value);
+            const coloane = parseInt(document.getElementById('film-coloane').value);
+
+            if (!titlu || !gen || !durata || !varstaMinima || !randuri || !coloane) {
+                alert('Completați toate câmpurile!');
+                return;
+            }
+
+            const response = await apiCall('/api/admin/adauga-film', 'POST', {
+                titlu, gen, durata, varstaMinima, randuri, coloane
+            });
+            
+            if (response && response.ok) {
+                alert('Film adăugat cu succes!');
+                document.getElementById('film-titlu').value = '';
+                document.getElementById('film-gen').value = '';
+                document.getElementById('film-durata').value = '';
+                document.getElementById('film-varsta').value = '';
+                document.getElementById('film-randuri').value = '';
+                document.getElementById('film-coloane').value = '';
+                loadFilme();
+            } else {
+                alert('Eroare la adăugarea filmului!');
+            }
+        }
+
+        async function stergeFilm(index) {
+            if (!confirm(`Sigur doriți să ștergeți filmul ${index}?`)) return;
+            
+            const response = await apiCall('/api/admin/sterge-film', 'POST', { filmIndex: index });
+            if (response && response.ok) {
+                alert('Film șters cu succes!');
+                loadFilme();
+            } else {
+                alert('Eroare la ștergerea filmului!');
+            }
+        }
+
+        async function resetSala(index) {
+            if (!confirm(`Sigur doriți să resetați sala pentru filmul ${index}?`)) return;
+            
+            const response = await apiCall('/api/admin/reset-sala', 'POST', { filmIndex: index });
+            if (response && response.ok) {
+                alert('Sala resetată cu succes!');
+            } else {
+                alert('Eroare la resetarea sălii!');
+            }
+        }
+
+        async function adaugaSuvenir() {
+            const nume = document.getElementById('suvenir-nume').value;
+            const pret = parseFloat(document.getElementById('suvenir-pret').value);
+
+            if (!nume || !pret) {
+                alert('Completați toate câmpurile!');
+                return;
+            }
+
+            const response = await apiCall('/api/admin/adauga-suvenir', 'POST', { nume, pret });
+            if (response && response.ok) {
+                alert('Suvenir adăugat cu succes!');
+                document.getElementById('suvenir-nume').value = '';
+                document.getElementById('suvenir-pret').value = '';
+                loadSuveniruri();
+            } else {
+                alert('Eroare la adăugarea suvenirului!');
+            }
+        }
+
+        async function stergeSuvenir(index) {
+            if (!confirm(`Sigur doriți să ștergeți suvenirul ${index}?`)) return;
+            
+            const response = await apiCall('/api/admin/sterge-suvenir', 'POST', { suvenirIndex: index });
+            if (response && response.ok) {
+                alert('Suvenir șters cu succes!');
+                loadSuveniruri();
+            } else {
+                alert('Eroare la ștergerea suvenirului!');
+            }
+        }
+
+        async function modificaSuvenir(index) {
+            const pretNou = parseFloat(document.getElementById(`suvenir-pret-${index}`).value);
+            
+            const response = await apiCall('/api/admin/modifica-suvenir', 'POST', { suvenirIndex: index, pretNou });
+            if (response && response.ok) {
+                alert('Preț modificat cu succes!');
+                loadSuveniruri();
+            } else {
+                alert('Eroare la modificarea prețului!');
+            }
+        }
+    </script>
+</body>
+</html>)HTMLDELIMITER";
+        res.set_content(html, "text/html; charset=utf-8");
+    });
+
+    // GET /api/admin/suveniruri
+    svr.Get("/api/admin/suveniruri", [&](const httplib::Request& req, httplib::Response& res) {
+        if (!checkAuth(req)) {
+            res.status = 401;
+            res.set_content("{\"error\":\"Neautorizat\"}", "application/json");
+            return;
+        }
+        lock_guard<mutex> lock(filmeMutex);
+        string json = "[";
+        for (size_t i = 0; i < suveniruri.size(); i++) {
+            if (i > 0) json += ",";
+            json += "{";
+            json += "\"index\":" + to_string(i) + ",";
+            json += "\"nume\":\"" + je(suveniruri[i].getNume()) + "\",";
+            json += "\"pret\":" + to_string((int)suveniruri[i].getPret());
+            json += "}";
+        }
+        json += "]";
+        setCors(res);
+        res.set_content(json, "application/json");
+    });
+
+    // GET /api/suveniruri (public)
+    svr.Get("/api/suveniruri", [&](const httplib::Request&, httplib::Response& res) {
+        lock_guard<mutex> lock(filmeMutex);
+        string json = "[";
+        for (size_t i = 0; i < suveniruri.size(); i++) {
+            if (i > 0) json += ",";
+            json += "{";
+            json += "\"index\":" + to_string(i) + ",";
+            json += "\"nume\":\"" + je(suveniruri[i].getNume()) + "\",";
+            json += "\"pret\":" + to_string((int)suveniruri[i].getPret());
+            json += "}";
+        }
+        json += "]";
+        setCors(res);
+        res.set_content(json, "application/json");
+    });
+
+    // POST /api/admin/adauga-film
+    svr.Post("/api/admin/adauga-film", [&](const httplib::Request& req, httplib::Response& res) {
+        if (!checkAuth(req)) {
+            res.status = 401;
+            res.set_content("{\"error\":\"Neautorizat\"}", "application/json");
+            return;
+        }
+        lock_guard<mutex> lock(filmeMutex);
+        
+        string titlu = parseJsonStr(req.body, "titlu");
+        string gen = parseJsonStr(req.body, "gen");
+        int durata = parseJsonInt(req.body, "durata");
+        int varstaMinima = parseJsonInt(req.body, "varstaMinima");
+        int randuri = parseJsonInt(req.body, "randuri");
+        int coloane = parseJsonInt(req.body, "coloane");
+        string oraRulare = parseJsonStr(req.body, "oraRulare");
+
+        if (titlu.empty() || gen.empty() || durata <= 0 || varstaMinima < 0 || randuri <= 0 || coloane <= 0 || oraRulare.empty()) {
+            res.status = 400;
+            res.set_content("{\"error\":\"Parametri invalizi\"}", "application/json");
+            return;
+        }
+
+        int idSala = (int)filme.size() + 1;
+        Sala s(idSala, randuri, coloane);
+        filme.push_back(Film(titlu, gen, durata, varstaMinima, s, oraRulare));
+        saveFilmeToFile(filme);
+        
+        setCors(res);
+        res.set_content("{\"success\":true}", "application/json");
+    });
+
+    // POST /api/admin/sterge-film
+    svr.Post("/api/admin/sterge-film", [&](const httplib::Request& req, httplib::Response& res) {
+        if (!checkAuth(req)) {
+            res.status = 401;
+            res.set_content("{\"error\":\"Neautorizat\"}", "application/json");
+            return;
+        }
+        lock_guard<mutex> lock(filmeMutex);
+        
+        int filmIndex = parseJsonInt(req.body, "filmIndex");
+        if (filmIndex < 0 || filmIndex >= (int)filme.size()) {
+            res.status = 400;
+            res.set_content("{\"error\":\"Index invalid\"}", "application/json");
+            return;
+        }
+        
+        filme.erase(filme.begin() + filmIndex);
+        saveFilmeToFile(filme);
+        
+        setCors(res);
+        res.set_content("{\"success\":true}", "application/json");
+    });
+
+    // POST /api/admin/reset-sala
+    svr.Post("/api/admin/reset-sala", [&](const httplib::Request& req, httplib::Response& res) {
+        if (!checkAuth(req)) {
+            res.status = 401;
+            res.set_content("{\"error\":\"Neautorizat\"}", "application/json");
+            return;
+        }
+        lock_guard<mutex> lock(filmeMutex);
+        
+        int filmIndex = parseJsonInt(req.body, "filmIndex");
+        if (filmIndex < 0 || filmIndex >= (int)filme.size()) {
+            res.status = 400;
+            res.set_content("{\"error\":\"Index invalid\"}", "application/json");
+            return;
+        }
+        
+        int randuri = filme[filmIndex].getSala().getNumarRanduri();
+        int coloane = filme[filmIndex].getSala().getNumarColoane();
+        int idSala = filme[filmIndex].getSala().getIndex();
+        string oraRulare = filme[filmIndex].getOraRulare();
+
+        Sala s(idSala, randuri, coloane);
+        filme[filmIndex] = Film(filme[filmIndex].getTitlu(), filme[filmIndex].getGen(),
+                                  filme[filmIndex].getDurata(), filme[filmIndex].getVarstaMinima(), s, oraRulare);
+        saveFilmeToFile(filme);
+        
+        setCors(res);
+        res.set_content("{\"success\":true}", "application/json");
+    });
+
+    // POST /api/admin/adauga-suvenir
+    svr.Post("/api/admin/adauga-suvenir", [&](const httplib::Request& req, httplib::Response& res) {
+        if (!checkAuth(req)) {
+            res.status = 401;
+            res.set_content("{\"error\":\"Neautorizat\"}", "application/json");
+            return;
+        }
+        lock_guard<mutex> lock(filmeMutex);
+        
+        string nume = parseJsonStr(req.body, "nume");
+        double pret = parseJsonDouble(req.body, "pret");
+        
+        if (nume.empty() || pret <= 0) {
+            res.status = 400;
+            res.set_content("{\"error\":\"Parametri invalizi\"}", "application/json");
+            return;
+        }
+        
+        suveniruri.push_back(Suvenir(nume, pret));
+        saveSuveniruriToFile(suveniruri);
+        
+        setCors(res);
+        res.set_content("{\"success\":true}", "application/json");
+    });
+
+    // POST /api/admin/sterge-suvenir
+    svr.Post("/api/admin/sterge-suvenir", [&](const httplib::Request& req, httplib::Response& res) {
+        if (!checkAuth(req)) {
+            res.status = 401;
+            res.set_content("{\"error\":\"Neautorizat\"}", "application/json");
+            return;
+        }
+        lock_guard<mutex> lock(filmeMutex);
+        
+        int suvenirIndex = parseJsonInt(req.body, "suvenirIndex");
+        if (suvenirIndex < 0 || suvenirIndex >= (int)suveniruri.size()) {
+            res.status = 400;
+            res.set_content("{\"error\":\"Index invalid\"}", "application/json");
+            return;
+        }
+        
+        suveniruri.erase(suveniruri.begin() + suvenirIndex);
+        saveSuveniruriToFile(suveniruri);
+        
+        setCors(res);
+        res.set_content("{\"success\":true}", "application/json");
+    });
+
+    // POST /api/admin/modifica-suvenir
+    svr.Post("/api/admin/modifica-suvenir", [&](const httplib::Request& req, httplib::Response& res) {
+        if (!checkAuth(req)) {
+            res.status = 401;
+            res.set_content("{\"error\":\"Neautorizat\"}", "application/json");
+            return;
+        }
+        lock_guard<mutex> lock(filmeMutex);
+
+        int suvenirIndex = parseJsonInt(req.body, "suvenirIndex");
+        double pretNou = parseJsonDouble(req.body, "pretNou");
+
+        if (suvenirIndex < 0 || suvenirIndex >= (int)suveniruri.size() || pretNou <= 0) {
+            res.status = 400;
+            res.set_content("{\"error\":\"Parametri invalizi\"}", "application/json");
+            return;
+        }
+
+        string nume = suveniruri[suvenirIndex].getNume();
+        suveniruri[suvenirIndex] = Suvenir(nume, pretNou);
+        saveSuveniruriToFile(suveniruri);
+
+        setCors(res);
+        res.set_content("{\"success\":true}", "application/json");
+    });
+
+    // POST /api/cos/finalizeaza
+    svr.Post("/api/cos/finalizeaza", [&](const httplib::Request& req, httplib::Response& res) {
+        lock_guard<mutex> lock(filmeMutex);
+
+        // Parse bilete array
+        size_t biletePos = req.body.find("\"bilete\":");
+        if (biletePos == string::npos) {
+            res.status = 400;
+            res.set_content("{\"succes\":false,\"eroare\":\"Format invalid\"}", "application/json");
+            return;
+        }
+
+        vector<pair<int,pair<int,int>>> bileteRezervate; // filmIndex, (rand, col)
+        size_t start = req.body.find("[", biletePos);
+        size_t end = req.body.find("]", start);
+        if (start == string::npos || end == string::npos) {
+            res.status = 400;
+            res.set_content("{\"succes\":false,\"eroare\":\"Format invalid\"}", "application/json");
+            return;
+        }
+
+        string bileteStr = req.body.substr(start + 1, end - start - 1);
+        size_t pos = 0;
+        while (pos < bileteStr.length()) {
+            size_t objStart = bileteStr.find("{", pos);
+            if (objStart == string::npos) break;
+            size_t objEnd = bileteStr.find("}", objStart);
+            if (objEnd == string::npos) break;
+
+            string objStr = bileteStr.substr(objStart, objEnd - objStart + 1);
+            int filmIndex = parseJsonInt(objStr, "filmIndex");
+            int rand = parseJsonInt(objStr, "rand");
+            int col = parseJsonInt(objStr, "col");
+
+            if (filmIndex >= 0 && filmIndex < (int)filme.size()) {
+                bileteRezervate.push_back({filmIndex, {rand, col}});
+            }
+
+            pos = objEnd + 1;
+        }
+
+        // Try to reserve all seats
+        for (auto& b : bileteRezervate) {
+            int filmIndex = b.first;
+            int rand = b.second.first;
+            int col = b.second.second;
+
+            // Check if film has already started
+            time_t now = time(nullptr);
+            tm* local = localtime(&now);
+            int currentHour = local->tm_hour;
+            int currentMin = local->tm_min;
+            int currentTotalMin = currentHour * 60 + currentMin;
+
+            string oraRulare = filme[filmIndex].getOraRulare();
+            int filmHour = stoi(oraRulare.substr(0, 2));
+            int filmMin = stoi(oraRulare.substr(3, 2));
+            int filmTotalMin = filmHour * 60 + filmMin;
+
+            if (currentTotalMin >= filmTotalMin) {
+                res.status = 409;
+                string eroare = "Filmul " + je(filme[filmIndex].getTitlu()) + " a început deja.";
+                res.set_content("{\"succes\":false,\"eroare\":\"" + eroare + "\"}", "application/json");
+                return;
+            }
+
+            try {
+                filme[filmIndex].getSala().rezervaLoc(rand, col);
+            } catch (exception& e) {
+                // Note: Rollback not possible with current Sala API (no release method)
+                // User will need to retry the transaction
+                res.status = 409;
+                string eroare = "Locul Rand " + to_string(rand + 1) + " Loc " + to_string(col + 1) + " era deja ocupat";
+                res.set_content("{\"succes\":false,\"eroare\":\"" + je(eroare) + "\"}", "application/json");
+                return;
+            }
+        }
+
+        setCors(res);
+        res.set_content("{\"succes\":true}", "application/json");
+    });
+
     // CORS preflight
     svr.Options(".*", [&](const httplib::Request&, httplib::Response& res) {
         setCors(res);
@@ -226,7 +1164,7 @@ int main()
         while (getline(fileFilme, line)) {
             if (line.empty()) continue;
             stringstream ss(line);
-            string titlu, gen, temp;
+            string titlu, gen, temp, oraRulare;
             int durata, varstaMinima, idSala, randuri, locuri;
 
             getline(ss, titlu, ',');
@@ -236,9 +1174,10 @@ int main()
             getline(ss, temp, ','); idSala       = stoi(temp);
             getline(ss, temp, ','); randuri      = stoi(temp);
             getline(ss, temp, ','); locuri       = stoi(temp);
+            getline(ss, oraRulare, ',');
 
             Sala s(idSala, randuri, locuri);
-            filme.push_back(Film(titlu, gen, durata, varstaMinima, s));
+            filme.push_back(Film(titlu, gen, durata, varstaMinima, s, oraRulare));
         }
         fileFilme.close();
     } else {
@@ -255,7 +1194,7 @@ int main()
             uniform_int_distribution<> distR(0, r - 1);
             uniform_int_distribution<> distC(0, c - 1);
             int ocupate = 0;
-            while (ocupate < 3 && ocupate < r * c) {
+            while (ocupate < 20 && ocupate < r * c) {
                 int randR = distR(gen_init);
                 int randC = distC(gen_init);
                 try {
@@ -283,8 +1222,8 @@ int main()
     }
 
     // ── Start HTTP server in background thread ──────────────────────────────
-    thread serverThread([&filme]() {
-        startHttpServer(filme);
+    thread serverThread([&filme, &suveniruri]() {
+        startHttpServer(filme, suveniruri);
     });
     serverThread.detach();
 

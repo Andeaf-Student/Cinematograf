@@ -14,9 +14,10 @@ private:
     int durata;
     int varstaMinima;
     Sala sala;
+    string oraRulare;
 
 public:
-    Film(string titlu, string gen, int durata, int varstaMinima, Sala sala);
+    Film(string titlu, string gen, int durata, int varstaMinima, Sala sala, string oraRulare);
     vector<string> getLiniiAfisare(int index) const;
 
     Sala& getSala();
@@ -24,6 +25,7 @@ public:
     string getTitlu() const;
     string getGen() const;
     int getDurata() const;
+    string getOraRulare() const;
 
 };
 

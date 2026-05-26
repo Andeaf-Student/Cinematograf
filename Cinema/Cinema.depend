@@ -10,7 +10,7 @@
 	<vector>
 	"Sala.h"
 
-1778673472 source:d:\coduri\an2_s2\proiect poo\cinematograf\cinema\main.cpp
+1779785192 source:d:\coduri\an2_s2\proiect poo\cinematograf\cinema\main.cpp
 	<iostream>
 	<vector>
 	<fstream>
@@ -18,7 +18,10 @@
 	<iomanip>
 	<ctime>
 	<random>
+	<thread>
+	<mutex>
 	<windows.h>
+	"httplib.h"
 	"Film.h"
 	"Suvenir.h"
 	"Bilet.h"
@@ -49,4 +52,96 @@
 
 1778673458 source:d:\coduri\an2_s2\proiect poo\cinematograf\cinema\bilet.cpp
 	"Bilet.h"
+
+1778678585 d:\coduri\an2_s2\proiect poo\cinematograf\cinema\httplib.h
+	<io.h>
+	<winsock2.h>
+	<ws2tcpip.h>
+	<afunix.h>
+	<arpa/inet.h>
+	<ifaddrs.h>
+	<strings.h>
+	<net/if.h>
+	<netdb.h>
+	<netinet/in.h>
+	<resolv.h>
+	<csignal>
+	<netinet/tcp.h>
+	<poll.h>
+	<pthread.h>
+	<sys/mman.h>
+	<sys/socket.h>
+	<sys/un.h>
+	<unistd.h>
+	<TargetConditionals.h>
+	<algorithm>
+	<array>
+	<atomic>
+	<cassert>
+	<cctype>
+	<chrono>
+	<climits>
+	<condition_variable>
+	<cstdlib>
+	<cstring>
+	<errno.h>
+	<exception>
+	<fcntl.h>
+	<fstream>
+	<functional>
+	<iomanip>
+	<iostream>
+	<list>
+	<map>
+	<memory>
+	<mutex>
+	<random>
+	<regex>
+	<set>
+	<sstream>
+	<string>
+	<sys/stat.h>
+	<system_error>
+	<thread>
+	<unordered_map>
+	<unordered_set>
+	<utility>
+	<CFNetwork/CFHost.h>
+	<CoreFoundation/CoreFoundation.h>
+	<wincrypt.h>
+	<Security/Security.h>
+	<openssl/err.h>
+	<openssl/evp.h>
+	<openssl/ssl.h>
+	<openssl/x509v3.h>
+	<openssl/applink.c>
+	<iostream>
+	<sstream>
+	<mbedtls/ctr_drbg.h>
+	<mbedtls/entropy.h>
+	<mbedtls/error.h>
+	<mbedtls/md5.h>
+	<mbedtls/net_sockets.h>
+	<mbedtls/oid.h>
+	<mbedtls/pk.h>
+	<mbedtls/sha1.h>
+	<mbedtls/sha256.h>
+	<mbedtls/sha512.h>
+	<mbedtls/ssl.h>
+	<mbedtls/x509_crt.h>
+	<wincrypt.h>
+	<Security/Security.h>
+	<wolfssl/options.h>
+	<wolfssl/openssl/x509v3.h>
+	<wolfssl/ssl.h>
+	<wolfssl/wolfcrypt/hash.h>
+	<wolfssl/wolfcrypt/md5.h>
+	<wolfssl/wolfcrypt/sha256.h>
+	<wolfssl/wolfcrypt/sha512.h>
+	<wincrypt.h>
+	<Security/Security.h>
+	<zlib.h>
+	<brotli/decode.h>
+	<brotli/encode.h>
+	<zstd.h>
 

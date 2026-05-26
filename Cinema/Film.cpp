@@ -5,12 +5,13 @@
 
 using namespace std;
 
-Film::Film(string titlu, string gen, int durata, int varstaMinima, Sala sala)
+Film::Film(string titlu, string gen, int durata, int varstaMinima, Sala sala, string oraRulare)
     : sala(sala) {
     this->titlu = titlu;
     this->gen = gen;
     this->durata = durata;
     this->varstaMinima = varstaMinima;
+    this->oraRulare = oraRulare;
 }
 
 vector<string> Film::getLiniiAfisare(int index) const {
@@ -69,4 +70,7 @@ int Film::getDurata() const {
     return durata;
 }
 
+string Film::getOraRulare() const {
+    return oraRulare;
+}
 
