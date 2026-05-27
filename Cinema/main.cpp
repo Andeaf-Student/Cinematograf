@@ -17,9 +17,44 @@
 #include <thread>
 #include <mutex>
 
-#define WIN32_LEAN_AND_MEAN
-#define NOMINMAX
-#include <windows.h>
+#ifdef _WIN32
+  #define WIN32_LEAN_AND_MEAN
+  #define NOMINMAX
+  #include <windows.h>
+  #include <conio.h>
+#else
+  #include <termios.h>
+  #include <unistd.h>
+  #include <sys/ioctl.h>
+  #include <stdio.h>
+
+  // Emulate Sleep(ms) in Linux using usleep
+  #define Sleep(ms) usleep((ms) * 1000)
+
+  static int _getch() {
+      struct termios oldt, newt;
+      int ch;
+      tcgetattr(STDIN_FILENO, &oldt);
+      newt = oldt;
+      newt.c_lflag &= ~(ICANON | ECHO);
+      tcsetattr(STDIN_FILENO, TCSANOW, &newt);
+      ch = getchar();
+      tcsetattr(STDIN_FILENO, TCSANOW, &oldt);
+      return ch;
+  }
+
+  static int _kbhit() {
+      struct termios oldt, newt;
+      int byteswaiting;
+      tcgetattr(STDIN_FILENO, &oldt);
+      newt = oldt;
+      newt.c_lflag &= ~(ICANON | ECHO);
+      tcsetattr(STDIN_FILENO, TCSANOW, &newt);
+      ioctl(STDIN_FILENO, FIONREAD, &byteswaiting);
+      tcsetattr(STDIN_FILENO, TCSANOW, &oldt);
+      return byteswaiting > 0;
+  }
+#endif
 
 #include "httplib.h"
 #include "Film.h"
@@ -27,7 +62,6 @@
 #include "Bilet.h"
 #include "Proiectie.h"
 #include <string.h>
-#include <conio.h>
 
 using namespace std;
 
@@ -2399,12 +2433,14 @@ void startHttpServer(vector<Film>& filme, vector<Proiectie>& proiectii, vector<S
 
 int main()
 {
+#ifdef _WIN32
     SetConsoleOutputCP(CP_UTF8);
 
     HANDLE hOut = GetStdHandle(STD_OUTPUT_HANDLE);
     DWORD dwMode = 0;
     GetConsoleMode(hOut, &dwMode);
     SetConsoleMode(hOut, dwMode | ENABLE_VIRTUAL_TERMINAL_PROCESSING);
+#endif
 
     vector<Film>      filme;
     vector<Proiectie> proiectii;
@@ -2519,7 +2555,11 @@ int main()
     };
 
     bool skipped = false;
+#ifdef _WIN32
     system("cls");
+#else
+    system("clear");
+#endif
 
     if (!skipped) { cout << "\n\n"; cout << "  ======================================================\n"; }
     if (!skipped) skipped = typewrite("   _____ _____ _   _ ______ __  __\n", 15);
@@ -2537,7 +2577,11 @@ int main()
     if (!skipped) { cout << "\n  ======================================================\n\n"; }
     if (!skipped) sleepOrSkip(800);
 
+#ifdef _WIN32
     system("cls");
+#else
+    system("clear");
+#endif
 
     auto afiseazaLogo = []() {
         cout << "\n";

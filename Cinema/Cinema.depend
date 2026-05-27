@@ -9,7 +9,7 @@
 	<string>
 	<vector>
 
-1779799474 source:d:\coduri\an2_s2\proiect poo\cinematograf\cinema\main.cpp
+1779870558 source:d:\coduri\an2_s2\proiect poo\cinematograf\cinema\main.cpp
 	<iostream>
 	<vector>
 	<fstream>
@@ -24,6 +24,7 @@
 	"Film.h"
 	"Suvenir.h"
 	"Bilet.h"
+	"Proiectie.h"
 	<string.h>
 	<conio.h>
 
@@ -143,4 +144,8 @@
 	<brotli/decode.h>
 	<brotli/encode.h>
 	<zstd.h>
+
+1779805274 d:\coduri\an2_s2\proiect poo\cinematograf\cinema\proiectie.h
+	<string>
+	"Sala.h"
 

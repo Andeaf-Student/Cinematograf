@@ -1,8 +1,52 @@
 #include <iostream>
 #include <stdexcept>
-#include <conio.h>
 #include <cstdlib>
 #include "Sala.h"
+
+#ifdef _WIN32
+#include <conio.h>
+#else
+#include <termios.h>
+#include <unistd.h>
+#include <stdio.h>
+
+static int _getch() {
+    struct termios oldt, newt;
+    int ch;
+    tcgetattr(STDIN_FILENO, &oldt);
+    newt = oldt;
+    newt.c_lflag &= ~(ICANON | ECHO);
+    tcsetattr(STDIN_FILENO, TCSANOW, &newt);
+    ch = getchar();
+    if (ch == 27) { // Escape sequence
+        int ch2 = getchar();
+        if (ch2 == 91) {
+            int ch3 = getchar();
+            switch (ch3) {
+                case 65: // UP
+                    ungetc(72, stdin);
+                    ch = 224;
+                    break;
+                case 66: // DOWN
+                    ungetc(80, stdin);
+                    ch = 224;
+                    break;
+                case 67: // RIGHT
+                    ungetc(77, stdin);
+                    ch = 224;
+                    break;
+                case 68: // LEFT
+                    ungetc(75, stdin);
+                    ch = 224;
+                    break;
+            }
+        }
+    }
+    tcsetattr(STDIN_FILENO, TCSANOW, &oldt);
+    return ch;
+}
+#endif
+
 using namespace std;
 
 // Coduri ANSI pentru culori
@@ -63,7 +107,11 @@ void Sala::selecteazaLocInteractiv(int& outRand, int& outCol) const {
     int coloane = randuri > 0 ? (int)locuri[0].size() : 0;
 
     while (true) {
+#ifdef _WIN32
         system("cls");
+#else
+        system("clear");
+#endif
         cout << "\nFoloseste sagetile pentru a naviga. Apasa ENTER pentru a selecta.\n";
         cout << "═══════════════════════\n";
 

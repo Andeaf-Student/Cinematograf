@@ -1,156 +1,72 @@
-# 🎬 Proiect POO – Cinematograf (C++)
+# 🎬 Proiect POO – Cinematograf Aurora (C++)
 
 ## 📌 Descriere
+**Cinema Aurora** este o aplicație modernă de tip cinematograf, cu o arhitectură **duală**: o consolă text interactivă C++ și o **interfață web modernă (SPA)** alimentată de un server web multi-threaded REST API în C++.
 
-Acest proiect reprezintă o aplicație de tip **cinematograf** realizată în C++, folosind concepte de programare orientată pe obiecte:
-
-* clase: `Film`, `Sala`, (și extensibil `Rezervare`)
-* relații între obiecte
-* vectori de obiecte
-* tratarea excepțiilor
-
-Aplicația rulează în **consolă (terminal)** și este compatibilă cu **Linux (Ubuntu)**.
-
+Aplicația este construită folosind concepte solide de **Programare Orientată pe Obiecte**:
+* **Clase**: `Film`, `Sala`, `Bilet`, `Suvenir` și structura `Proiectie`.
+* **Relații complexe**: Separare completă între metadatele filmelor și instanțele dinamice de proiecție (ore de rulare, săli dedicate, matrici de locuri).
+* **Multi-threading & Sincronizare**: Utilizarea de mutex-uri (`std::mutex`, `std::lock_guard`) pentru a preveni accesul concurent (race conditions) la rezervări.
+* **Persistență**: Stocare/încărcare persistentă pe server (`Filme.txt`, `Proiectii.txt`, `Suveniruri.txt`, `istoric.txt` și `cos_temp.txt`).
 
 ---
 
-## 🐧 Instalare și configurare Ubuntu (WSL)
+## � Funcționalități de Elită
 
-### 1. Instalare
-Ubuntu poate fi instalat din Microsoft Store.
-Daca este prima data cand folosesti Ubuntu, asigura-te ca faci urmatorii pasi:
+### 🌐 Interfața Web SPA (Single Page Application)
+* **Design Futuristic**: Interfață responsive întunecată (Dark Mode), efecte moderne de sticlă (Glassmorphism) și animații fluide.
+* **Integrare TMDB**: Postere de film descărcate și memorate în cache automat.
+* **Proiecții Multiple & Status în Timp Real**: Badge-uri dinamice pe ore (Verde - Disponibil, Portocaliu pulsând - Începe în < 2h, Roșu - Sold Out, Gri - Încheiat).
+* **Selecție Interactivă de Locuri**: Matrice vizuală a sălii unde utilizatorul selectează locurile în timp real.
+* **Coș Persistent**: Coșul de cumpărături (bilete + suveniruri) se sincronizează în fundal pe server (`cos_temp.txt`) și nu se pierde la navigare.
+* **Magazin de Suveniruri**: Posibilitatea adăugării de produse tematice direct în coș.
+* **Istoric Complet**: Pagina `/istoric` afișează toate comenzile trecute ca niște chitanțe electronice elegante, cu posibilitate de resetare.
 
-Verifică dacă ai Hyper-V / Virtual Machine Platform activ:
-
-Apasă Win + R
-Scrie:
-optionalfeatures.exe
-Bifează:
-✔ Virtual Machine Platform
-✔ Windows Subsystem for Linux
-
----
-
-### 2. Instalare Ubuntu
-
-În PowerShell:
-
-```powershell
-wsl --install -d Ubuntu
-```
-
-La prima rulare:
-
-* introdu un username
-* introdu o parolă
+### 🖥️ Panoul de Administrare (`/admin`)
+* **Gestiune Filme (Metadate)**: Adăugare, editare inline direct în tabel, ștergere în timp real (cu ștergerea în cascadă a proiecțiilor aferente).
+* **Gestiune Proiecții**: Creare de noi proiecții cu selector dinamic de săli libere (verifică suprapunerile cu o marjă de siguranță de 30 de minute).
+* **Filtrare & Sortare**: Căutare instantanee inline și sortare dinamică ascendentă/descendentă pe headers (`▲` / `▼`).
 
 ---
 
-### 3. Instalare compilator C++
+## � Pornire pe Ubuntu (Linux / WSL)
 
-În terminalul Ubuntu:
+Dacă vrei să rulezi aplicația rapid direct din terminalul Ubuntu, folosește comenzile de mai jos.
 
+### 1. Instalare compilator C++
 ```bash
 sudo apt update
-sudo apt install g++
+sudo apt install build-essential
 ```
 
-Verificare:
-
+### 2. Navigarea în folderul proiectului
+Înlocuiește calea de mai jos cu cea reală a folderului tău:
 ```bash
-g++ --version
+cd "/calea/catre/Cinematograf/Cinema"
 ```
 
----
-
-## 📂 Accesarea proiectului din Windows
-
-Verifica unde ai salvat folderul proiectului.
-Exemplu: D:\Coduri\An2_S2\Proiect POO\Cinematograf\Cinema
-
-În WSL, acesta devine:
-
+### 3. Compilare (folosind flag-ul `-pthread` necesar pentru server)
 ```bash
-/mnt/"*calea proiectului*"
-Exemplu: /mnt/d/Coduri/An2_S2/Proiect\ POO/Cinematograf/Cinema
+g++ -std=c++17 Bilet.cpp Film.cpp Sala.cpp Suvenir.cpp main.cpp -o Cinema -pthread
 ```
 
----
-
-## ▶️ Rulare proiect
-
-### 1. Navigare în folder
-
+### 4. Pornire Server
 ```bash
-cd /mnt/d/Coduri/An2_S2/Proiect\ POO/Cinematograf/Cinema
+./Cinema
 ```
 
----
-
-### 2. Verificare fișiere
-
+### 5. Deschiderea automată în browser (Modul "Pro") 😎
+În timp ce serverul rulează, deschide un **nou tab de terminal** (`Ctrl + Shift + T`) și rulează comanda magică de sistem:
 ```bash
-ls
+xdg-open http://localhost:8080
 ```
-
-Trebuie să existe fișiere precum:
-
-```
-main.cpp
-Film.cpp
-Film.h
-Sala.cpp
-Sala.h
-```
+Sistemul va deschide automat browser-ul tău implicit direct la aplicația Cinematografului!
 
 ---
 
-### 3. Compilare
-
-```bash
-g++ *.cpp -o cinematograf
-```
-
----
-
-### 4. Rulare
-
-```bash
-./cinematograf
-```
-
----
-
-## 🧠 Observații importante
-
-* Nu se folosesc funcții specifice Windows (ex: `system("cls")`)
-* Pentru Linux se poate folosi:
-
-```cpp
-system("clear");
-```
-
-* Proiectul folosește:
-
-  * `vector` pentru colecții de obiecte
-  * `try/catch` pentru gestionarea erorilor (loc ocupat, index invalid)
-
----
-
-## 🚀 Funcționalități
-
-* Afișare listă filme
-* Vizualizare locuri din sală (liber/ocupat)
-* Rezervare loc
-* Validare și tratare erori
-* (Opțional) calcul preț pe rând + confirmare rezervare
-
----
-
-## 📌 Concluzie
-
-Proiectul este complet compatibil cu Linux și poate fi compilat și rulat folosind `g++` în terminal, fără dependențe de Visual Studio sau Windows.
-
----
-
-
+## � Structura Principală de Date
+* `Filme.txt` - Catalogul global de filme (Metadate).
+* `Proiectii.txt` - Planificarea proiecțiilor (ID, Film, Sală, Matrice Locuri, Oră).
+* `Suveniruri.txt` - Catalogul magazinului de suveniruri.
+* `cos_temp.txt` - Sincronizarea temporară a coșului de cumpărături.
+* `istoric.txt` - Istoricul permanent în format JSON al tuturor comenzilor finalizate.
