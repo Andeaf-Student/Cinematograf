@@ -549,6 +549,14 @@
             border: 1px solid var(--border);
         }
 
+        .proiectii-container {
+            display: flex;
+            gap: 10px;
+            flex-wrap: wrap;
+            margin-top: 15px;
+            padding: 0 20px 20px 20px;
+        }
+
         .proiectie-btn {
             background: rgba(255,255,255,0.02);
             border: 1px solid var(--border);
@@ -1275,6 +1283,18 @@
 
         const API_BASE = ""; // Relative to server
 
+        async function salveazaCos() {
+            try {
+                await fetch(`${API_BASE}/api/cos/salveaza`, {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify(window.cosDate)
+                });
+            } catch (e) {
+                console.error("Nu s-a putut salva cosul", e);
+            }
+        }
+
         function getProiectieStatus(p, filmDurata) {
             const now = new Date();
             const currentHour = now.getHours();
@@ -1436,7 +1456,7 @@
 
             // 1. Render active films
             html += activeFilms.map(({ f, pDetails, totalLocuriDisponibile }) => {
-                let oreHtml = '<div style="display: flex; gap: 10px; flex-wrap: wrap; margin-top: 15px;">';
+                let oreHtml = '<div class="proiectii-container">';
                 pDetails.forEach(({ p, status }) => {
                     let btnClass = "proiectie-btn";
                     let disabledAttr = "";
@@ -1490,7 +1510,7 @@
             if (inactiveFilms.length > 0) {
                 html += `<div class="grid-separator">— Proiecții încheiate —</div>`;
                 html += inactiveFilms.map(({ f, pDetails }) => {
-                    let oreHtml = '<div style="display: flex; gap: 10px; flex-wrap: wrap; margin-top: 15px; opacity: 0.5;">';
+                    let oreHtml = '<div class="proiectii-container" style="opacity: 0.5;">';
                     pDetails.forEach(({ p, status }) => {
                         oreHtml += `
                             <button class="proiectie-btn ended" disabled>
@@ -1596,6 +1616,7 @@
                 });
             }
             updateCartBadge();
+            salveazaCos();
             showToast("Suvenir adăugat în coș 🛒");
         }
 
@@ -1626,7 +1647,6 @@
         }
 
         function navigateToCos() {
-            sessionStorage.setItem('cosDate', JSON.stringify(window.cosDate));
             window.location.href = '/cos';
         }
 
@@ -1674,17 +1694,27 @@
         function renderSala(locuri) {
             const chart = document.getElementById('seating-chart');
             const middleIndex = Math.floor(locuri.length / 2);
+            const seatsInCartForProj = window.cosDate.bilete.filter(b => b.idProiectie === selectedProiectie.idProiectie);
+
             chart.innerHTML = locuri.map((row, r) => {
                 const isAisleAfter = r === middleIndex;
                 return `
                 <div class="seat-row" style="${isAisleAfter ? 'margin-bottom: 30px;' : ''}">
                     <div class="row-label">${String.fromCharCode(65 + r)}</div>
-                    ${row.map((taken, c) => `
-                        <div class="seat ${taken ? 'taken' : 'available'}"
-                             onclick="selectSeat(${r}, ${c}, ${taken})"
-                             id="seat-${r}-${c}">
-                        </div>
-                    `).join('')}
+                    ${row.map((taken, c) => {
+                        const isInCart = seatsInCartForProj.some(b => b.rand === r && b.col === c);
+                        let seatClass = "seat ";
+                        if (taken) seatClass += "taken";
+                        else if (isInCart) seatClass += "in-cart";
+                        else seatClass += "available";
+
+                        return `
+                            <div class="${seatClass}"
+                                 onclick="selectSeat(${r}, ${c}, ${taken || isInCart})"
+                                 id="seat-${r}-${c}">
+                            </div>
+                        `;
+                    }).join('')}
                 </div>
             `}).join('');
         }
@@ -1732,12 +1762,15 @@
 
             // Add to cart instead of reserving immediately
             window.cosDate.bilete.push({
-                filmIndex: selectedFilm.id,
+                idProiectie: selectedProiectie.idProiectie,
+                filmIndex: selectedFilm.index,
                 filmTitlu: selectedFilm.titlu,
                 rand: selectedSeat.r,
                 col: selectedSeat.c,
                 pret: price,
-                nume: name
+                nume: name,
+                ora: selectedProiectie.oraRulare,
+                sala: selectedProiectie.idSala
             });
 
             // Mark seat as in cart
@@ -1746,6 +1779,7 @@
             seat.classList.add('in-cart');
 
             updateCartBadge();
+            salveazaCos();
             showToast("Bilet adăugat în coș 🛒");
 
             // Reset selection
@@ -1792,6 +1826,17 @@
                 renderFilms();
                 renderSchedule();
                 await loadSuveniruri();
+
+                // Retrieve temporary cart from server
+                try {
+                    const resCart = await fetch(`${API_BASE}/api/cos`);
+                    if (resCart.ok) {
+                        window.cosDate = await resCart.json();
+                        updateCartBadge();
+                    }
+                } catch (e) {
+                    console.error("Nu s-a putut incarca cosul", e);
+                }
 
                 // Live updates every minute
                 setInterval(async () => {

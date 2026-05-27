@@ -911,9 +911,9 @@ void startHttpServer(vector<Film>& filme, vector<Proiectie>& proiectii, vector<S
 
     <div class="modal hidden" id="success-modal">
         <div class="modal-content">
-            <h2 style="color: var(--success);">✅ Tranzacție realizată cu succes!</h2>
-            <p>Biletele tale au fost rezervate.</p>
-            <button class="modal-btn" onclick="inchideModal()">OK</button>
+            <h2 style="color: var(--success);" id="success-title">✅ Tranzacție realizată cu succes!</h2>
+            <p id="success-desc">Biletele tale au fost rezervate.</p>
+            <button class="modal-btn" onclick="confirmareSucces()">OK</button>
         </div>
     </div>
 
@@ -926,9 +926,19 @@ void startHttpServer(vector<Film>& filme, vector<Proiectie>& proiectii, vector<S
     </div>
 
     <script>
-        // Load cart from sessionStorage
-        const cartData = sessionStorage.getItem('cosDate');
-        window.cosDate = cartData ? JSON.parse(cartData) : { bilete: [], suveniruri: [] };
+        window.cosDate = { bilete: [], suveniruri: [] };
+
+        async function initCart() {
+            try {
+                const res = await fetch('/api/cos');
+                if (res.ok) {
+                    window.cosDate = await res.json();
+                }
+            } catch (e) {
+                console.error("Nu s-a putut incarca cosul", e);
+            }
+            renderCart();
+        }
 
         function renderCart() {
             const bileteBody = document.getElementById('bilete-body');
@@ -941,14 +951,17 @@ void startHttpServer(vector<Film>& filme, vector<Proiectie>& proiectii, vector<S
                 bileteSection.classList.add('hidden');
             } else {
                 bileteSection.classList.remove('hidden');
-                bileteBody.innerHTML = window.cosDate.bilete.map((b, i) => `
-                    <tr>
-                        <td>${b.filmTitlu}</td>
-                        <td>Rand ${String.fromCharCode(65 + b.rand)}, Loc ${b.col + 1}</td>
-                        <td>${b.pret} RON</td>
-                        <td><button class="btn btn-danger" onclick="stergeBilet(${i})">Șterge</button></td>
-                    </tr>
-                `).join('');
+                bileteBody.innerHTML = window.cosDate.bilete.map((b, i) => {
+                    const infoLabel = (b.ora && b.sala) ? ` (${b.ora} • Sala ${b.sala})` : '';
+                    return `
+                        <tr>
+                            <td>${b.filmTitlu}${infoLabel}</td>
+                            <td>Rand ${String.fromCharCode(65 + b.rand)}, Loc ${b.col + 1}</td>
+                            <td>${b.pret} RON</td>
+                            <td><button class="btn btn-danger" onclick="stergeBilet(${i})">Șterge</button></td>
+                        </tr>
+                    `;
+                }).join('');
             }
 
             // Render souvenirs
@@ -978,28 +991,53 @@ void startHttpServer(vector<Film>& filme, vector<Proiectie>& proiectii, vector<S
             }
         }
 
-        function stergeBilet(index) {
+        async function stergeBilet(index) {
             window.cosDate.bilete.splice(index, 1);
-            salveazaCos();
+            await salveazaCos();
             renderCart();
         }
 
-        function stergeSuvenir(index) {
+        async function stergeSuvenir(index) {
             window.cosDate.suveniruri.splice(index, 1);
-            salveazaCos();
+            await salveazaCos();
             renderCart();
         }
 
-        function salveazaCos() {
-            sessionStorage.setItem('cosDate', JSON.stringify(window.cosDate));
+        async function salveazaCos() {
+            try {
+                await fetch('/api/cos/salveaza', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify(window.cosDate)
+                });
+            } catch (e) {
+                console.error("Nu s-a putut salva cosul pe server", e);
+            }
         }
 
         async function finalizeazaComanda() {
+            const hasBilete = window.cosDate.bilete.length > 0;
+            const hasSuveniruri = window.cosDate.suveniruri.length > 0;
+
+            const titleElem = document.getElementById('success-title');
+            const descElem = document.getElementById('success-desc');
+
+            if (!hasBilete && hasSuveniruri) {
+                titleElem.innerText = "✅ Comandă plasată cu succes!";
+                descElem.innerText = "Suvenirurile tale au fost înregistrate.";
+            } else if (hasBilete && !hasSuveniruri) {
+                titleElem.innerText = "✅ Tranzacție realizată cu succes!";
+                descElem.innerText = "Biletele tale au fost rezervate.";
+            } else {
+                titleElem.innerText = "✅ Comandă finalizată cu succes!";
+                descElem.innerText = "Biletele și suvenirurile tale au fost înregistrate.";
+            }
+
             const response = await fetch('/api/cos/finalizeaza', {
                 method: 'POST',
                 headers: { 'Content-Type': 'application/json' },
                 body: JSON.stringify({
-                    bilete: window.cosDate.bilete.map(b => ({ filmIndex: b.filmIndex, rand: b.rand, col: b.col })),
+                    bilete: window.cosDate.bilete.map(b => ({ idProiectie: b.idProiectie, rand: b.rand, col: b.col })),
                     suveniruri: window.cosDate.suveniruri.map(s => ({ suvenirIndex: s.suvenirIndex, cantitate: s.cantitate }))
                 })
             });
@@ -1013,19 +1051,22 @@ void startHttpServer(vector<Film>& filme, vector<Proiectie>& proiectii, vector<S
             }
         }
 
-        function inchideModal() {
+        async function confirmareSucces() {
             document.getElementById('success-modal').classList.add('hidden');
-            document.getElementById('error-modal').classList.add('hidden');
-
-            // If success, clear cart and redirect
-            if (!document.getElementById('success-modal').classList.contains('hidden')) {
-                window.cosDate = { bilete: [], suveniruri: [] };
-                salveazaCos();
-                window.location.href = '/';
+            try {
+                await fetch('/api/cos/goleste', { method: 'POST' });
+            } catch (e) {
+                console.error(e);
             }
+            window.cosDate = { bilete: [], suveniruri: [] };
+            window.location.href = '/';
         }
 
-        renderCart();
+        function inchideModal() {
+            document.getElementById('error-modal').classList.add('hidden');
+        }
+
+        initCart();
     </script>
 </body>
 </html>)HTMLDELIMITER";
@@ -2158,6 +2199,47 @@ void startHttpServer(vector<Film>& filme, vector<Proiectie>& proiectii, vector<S
         }
     });
 
+    // GET /api/cos - retrieve temporary cart
+    svr.Get("/api/cos", [&](const httplib::Request&, httplib::Response& res) {
+        setCors(res);
+        ifstream f("cos_temp.txt");
+        if (f.is_open()) {
+            string content((istreambuf_iterator<char>(f)), istreambuf_iterator<char>());
+            f.close();
+            res.set_content(content, "application/json; charset=utf-8");
+        } else {
+            res.set_content("{\"bilete\":[], \"suveniruri\":[]}", "application/json; charset=utf-8");
+        }
+    });
+
+    // POST /api/cos/salveaza - persist temporary cart
+    svr.Post("/api/cos/salveaza", [&](const httplib::Request& req, httplib::Response& res) {
+        setCors(res);
+        ofstream f("cos_temp.txt");
+        if (f.is_open()) {
+            f << req.body;
+            f.close();
+            res.set_content("{\"succes\":true}", "application/json");
+        } else {
+            res.status = 500;
+            res.set_content("{\"error\":\"Nu s-a putut salva cosul\"}", "application/json");
+        }
+    });
+
+    // POST /api/cos/goleste - clear temporary cart
+    svr.Post("/api/cos/goleste", [&](const httplib::Request&, httplib::Response& res) {
+        setCors(res);
+        ofstream f("cos_temp.txt");
+        if (f.is_open()) {
+            f << "{\"bilete\":[], \"suveniruri\":[]}";
+            f.close();
+            res.set_content("{\"succes\":true}", "application/json");
+        } else {
+            res.status = 500;
+            res.set_content("{\"error\":\"Nu s-a putut goli cosul\"}", "application/json");
+        }
+    });
+
     // POST /api/cos/finalizeaza
     svr.Post("/api/cos/finalizeaza", [&](const httplib::Request& req, httplib::Response& res) {
         lock_guard<mutex> lock(filmeMutex);
@@ -2290,7 +2372,19 @@ void startHttpServer(vector<Film>& filme, vector<Proiectie>& proiectii, vector<S
         // 3. Salvare în istoric.txt
         adaugaInIstoric(bileteJsonArray, suveniruriJsonArray, totalGeneral);
 
-        res.set_content("{\"succes\":true}", "application/json");
+        string mesaj = "";
+        bool areBilete = (succesfulReservations.size() > 0);
+        bool areSuveniruri = (totalSuveniruri > 0);
+
+        if (!areBilete && areSuveniruri) {
+            mesaj = "✅ Comandă plasată cu succes!\\nSuvenirurile tale au fost înregistrate.";
+        } else if (areBilete && !areSuveniruri) {
+            mesaj = "✅ Tranzacție realizată cu succes!\\nBiletele tale au fost rezervate.";
+        } else {
+            mesaj = "✅ Comandă finalizată cu succes!\\nBiletele și suvenirurile tale au fost înregistrate.";
+        }
+
+        res.set_content("{\"succes\":true,\"mesaj\":\"" + mesaj + "\"}", "application/json; charset=utf-8");
     });
 
     // CORS preflight
