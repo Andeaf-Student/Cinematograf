@@ -40,9 +40,9 @@ sudo apt install build-essential
 ```
 
 ### 2. Navigarea în folderul proiectului
-Înlocuiește calea de mai jos cu cea reală a folderului tău:
+Înlocuiește calea de mai jos cu cea reală a folderului tău (exemplu pentru WSL):
 ```bash
-cd "/calea/catre/Cinematograf/Cinema"
+cd "/mnt/d/Coduri/An2_S2/Proiect POO/Cinematograf/Cinema"
 ```
 
 ### 3. Compilare (folosind flag-ul `-pthread` necesar pentru server)
@@ -56,11 +56,11 @@ g++ -std=c++17 Bilet.cpp Film.cpp Sala.cpp Suvenir.cpp main.cpp -o Cinema -pthre
 ```
 
 ### 5. Deschiderea automată în browser (Modul "Pro") 😎
-În timp ce serverul rulează, deschide un **nou tab de terminal** (`Ctrl + Shift + T`) și rulează comanda magică de sistem:
+În timp ce serverul rulează, deschide un **nou tab de terminal** (`Ctrl + Shift + T`), deschide un nou shell (ex: `wsl`) și rulează comanda de mai jos pentru a deschide pagina în Windows:
 ```bash
-xdg-open http://localhost:8080
+cmd.exe /c start http://localhost:8080
 ```
-Sistemul va deschide automat browser-ul tău implicit direct la aplicația Cinematografului!
+Sistemul va deschide automat browser-ul tău implicit direct la aplicația Cinematografului! (Dacă folosești Linux nativ, poți rula `xdg-open http://localhost:8080`).
 
 ---
 

@@ -112,15 +112,29 @@ static string parseJsonStr(const string& body, const string& key) {
     return body.substr(q1 + 1, q2 - q1 - 1);
 }
 
-static std::pair<int, int> getSalaDimensions(int idSala) {
-    if (idSala == 1) return {10, 12};
-    if (idSala == 2) return {10, 13};
-    if (idSala == 3) return {11, 12};
-    if (idSala == 4) return {10, 14};
-    if (idSala == 5) return {11, 13};
-    if (idSala == 6) return {12, 12};
-    if (idSala == 7) return {11, 14};
-    return {10, 10}; // implicit default
+// Helper to get actual sala dimensions from existing projections
+// Finds the MAXIMUM dimensions (most seats) for a hall
+// Returns {-1, -1} if sala not found in any existing projection
+static std::pair<int, int> getSalaDimensions(int idSala, const vector<Proiectie>& proiectii) {
+    int maxRanduri = 0;
+    int maxColoane = 0;
+    bool found = false;
+    
+    for (const auto& p : proiectii) {
+        if (p.idSala == idSala) {
+            int r = p.sala.getNumarRanduri();
+            int c = p.sala.getNumarColoane();
+            // Keep the maximum dimensions found
+            if (r * c > maxRanduri * maxColoane) {
+                maxRanduri = r;
+                maxColoane = c;
+                found = true;
+            }
+        }
+    }
+    
+    if (!found) return {-1, -1}; // Sala not found
+    return {maxRanduri, maxColoane};
 }
 
 static string readFile(const string& path) {
@@ -1919,7 +1933,10 @@ void startHttpServer(vector<Film>& filme, vector<Proiectie>& proiectii, vector<S
                 if (!firstSala) json += ",";
                 firstSala = false;
 
-                auto dims = getSalaDimensions(s);
+                // Get actual dimensions from existing projections
+                auto dims = getSalaDimensions(s, proiectii);
+                if (dims.first == -1) continue; // Skip if sala not found in existing projections
+
                 int locuriTotale = dims.first * dims.second;
 
                 json += "{";
@@ -2053,7 +2070,13 @@ void startHttpServer(vector<Film>& filme, vector<Proiectie>& proiectii, vector<S
         }
         int idProiectie = maxId + 1;
 
-        auto dims = getSalaDimensions(idSala);
+        // Get actual dimensions from existing projections for this sala
+        auto dims = getSalaDimensions(idSala, proiectii);
+        if (dims.first == -1) {
+            res.status = 400;
+            res.set_content("{\"success\":false, \"eroare\":\"Sala cu id-ul " + to_string(idSala) + " nu există. Folosește doar săli existente.\"}", "application/json");
+            return;
+        }
         int randuri = dims.first;
         int coloane = dims.second;
 
@@ -2125,7 +2148,12 @@ void startHttpServer(vector<Film>& filme, vector<Proiectie>& proiectii, vector<S
         found->oraRulare = oraRulare;
 
         // update sala index and dimensions if changed
-        auto dims = getSalaDimensions(idSala);
+        auto dims = getSalaDimensions(idSala, proiectii);
+        if (dims.first == -1) {
+            res.status = 400;
+            res.set_content("{\"success\":false, \"eroare\":\"Sala cu id-ul " + to_string(idSala) + " nu există. Folosește doar săli existente.\"}", "application/json");
+            return;
+        }
         found->sala = Sala(idSala, dims.first, dims.second);
 
         saveProiectiiToFile(proiectii);
@@ -2486,6 +2514,14 @@ int main()
             proiectii.push_back(Proiectie(idProiectie, filmIndex, idSala, randuri, coloane, oraRulare));
         }
         fileProiectii.close();
+
+        // Synchronize and heal any incorrect hall dimensions loaded from Proiectii.txt
+        for (auto& p : proiectii) {
+            auto dims = getSalaDimensions(p.idSala, proiectii);
+            if (dims.first != -1 && (p.sala.getNumarRanduri() != dims.first || p.sala.getNumarColoane() != dims.second)) {
+                p.sala = Sala(p.idSala, dims.first, dims.second);
+            }
+        }
     } else {
         cout << "Avertisment: Nu s-a putut deschide fisierul Proiectii.txt!\n";
     }
