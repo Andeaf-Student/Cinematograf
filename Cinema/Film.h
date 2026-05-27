@@ -3,7 +3,6 @@
 
 #include <string>
 #include <vector>
-#include "Sala.h"
 
 using namespace std;
 
@@ -13,19 +12,15 @@ private:
     string gen;
     int durata;
     int varstaMinima;
-    Sala sala;
-    string oraRulare;
 
 public:
-    Film(string titlu, string gen, int durata, int varstaMinima, Sala sala, string oraRulare);
+    Film(string titlu, string gen, int durata, int varstaMinima);
     vector<string> getLiniiAfisare(int index) const;
 
-    Sala& getSala();
     int getVarstaMinima() const;
     string getTitlu() const;
     string getGen() const;
     int getDurata() const;
-    string getOraRulare() const;
 
 };
 

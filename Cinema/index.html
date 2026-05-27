@@ -114,25 +114,93 @@
             60% { transform: rotate(45deg) translateY(-5px); }
         }
 
-        .admin-btn {
+        @keyframes pulse-orange {
+            from { transform: scale(1); box-shadow: 0 0 5px rgba(243, 156, 18, 0.3); }
+            to { transform: scale(1.05); box-shadow: 0 0 15px rgba(243, 156, 18, 0.7); }
+        }
+
+        /* --- Hamburger Menu --- */
+        .hamburger-container {
             position: absolute;
             top: 40px;
             left: 40px;
-            padding: 12px 24px;
-            background: var(--glass);
-            color: var(--text-main);
-            border: 1px solid var(--border);
-            border-radius: 12px;
-            cursor: pointer;
-            font-weight: 600;
-            transition: all 0.3s;
-            z-index: 10;
+            z-index: 1000;
         }
 
-        .admin-btn:hover {
+        .hamburger-btn {
+            background: var(--glass);
+            border: 1px solid var(--border);
+            color: var(--text-main);
+            padding: 15px;
+            border-radius: 50%;
+            cursor: pointer;
+            font-size: 1.4rem;
+            width: 50px;
+            height: 50px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            transition: all 0.3s;
+            outline: none;
+        }
+
+        .hamburger-btn:hover {
             background: var(--primary);
             color: #000;
             border-color: var(--primary);
+            box-shadow: 0 0 15px var(--primary-glow);
+        }
+
+        .hamburger-dropdown {
+            position: absolute;
+            top: 60px;
+            left: 0;
+            background: var(--bg-card);
+            border: 1px solid var(--border);
+            border-radius: 12px;
+            width: 200px;
+            overflow: hidden;
+            box-shadow: 0 10px 30px rgba(0,0,0,0.5);
+            display: none;
+            flex-direction: column;
+            transform-origin: top;
+            animation: slideDown 0.2s ease-in-out forwards;
+        }
+
+        .hamburger-dropdown.show {
+            display: flex;
+        }
+
+        .hamburger-item {
+            background: none;
+            border: none;
+            color: var(--text-main);
+            padding: 12px 20px;
+            text-align: left;
+            font-size: 0.95rem;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.2s;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            text-decoration: none;
+        }
+
+        .hamburger-item:hover {
+            background: var(--primary);
+            color: #000;
+        }
+
+        @keyframes slideDown {
+            from {
+                opacity: 0;
+                transform: scaleY(0);
+            }
+            to {
+                opacity: 1;
+                transform: scaleY(1);
+            }
         }
 
         /* --- Cart Icon --- */
@@ -226,7 +294,7 @@
         /* --- Hide elements when seat selection is active --- */
         body.seat-selection-active .hero,
         body.seat-selection-active .souvenirs-section,
-        body.seat-selection-active .admin-btn,
+        body.seat-selection-active .hamburger-container,
         body.seat-selection-active .cart-icon {
             display: none !important;
         }
@@ -479,6 +547,62 @@
             padding: 4px 10px;
             border-radius: 6px;
             border: 1px solid var(--border);
+        }
+
+        .proiectie-btn {
+            background: rgba(255,255,255,0.02);
+            border: 1px solid var(--border);
+            color: var(--text-main);
+            padding: 8px 14px;
+            border-radius: 8px;
+            cursor: pointer;
+            font-weight: 600;
+            font-size: 0.9rem;
+            transition: all 0.3s;
+            outline: none;
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            gap: 5px;
+        }
+
+        .proiectie-btn.available {
+            background: rgba(46, 204, 113, 0.1);
+            color: var(--success);
+            border-color: var(--success);
+        }
+
+        .proiectie-btn.available:hover {
+            background: var(--success);
+            color: #000;
+            box-shadow: 0 0 10px rgba(46, 204, 113, 0.4);
+        }
+
+        .proiectie-btn.starting-soon {
+            background: rgba(243, 156, 18, 0.15);
+            color: #f39c12;
+            border-color: #f39c12;
+        }
+
+        .proiectie-btn.starting-soon:hover {
+            background: #f39c12;
+            color: #000;
+            box-shadow: 0 0 10px rgba(243, 156, 18, 0.4);
+        }
+
+        .proiectie-btn.sold-out {
+            background: rgba(231, 76, 60, 0.1);
+            color: var(--accent);
+            border-color: var(--accent);
+            cursor: not-allowed;
+        }
+
+        .proiectie-btn.ended {
+            background: rgba(255,255,255,0.02);
+            color: var(--text-muted);
+            border-color: var(--border);
+            cursor: not-allowed;
+            opacity: 0.5;
         }
 
         .btn-select {
@@ -900,7 +1024,13 @@
 
     <!-- Hero Section -->
     <section class="hero">
-        <button class="admin-btn" onclick="window.open('/admin', '_blank')">Admin</button>
+        <div class="hamburger-container">
+            <button class="hamburger-btn" onclick="toggleHamburger(event)">☰</button>
+            <div class="hamburger-dropdown" id="hamburger-dropdown">
+                <a class="hamburger-item" href="/admin" target="_blank">⚙️ Admin</a>
+                <a class="hamburger-item" href="/istoric">📋 Istoric comenzi</a>
+            </div>
+        </div>
         <div class="hero-content">
             <h1 class="hero-title">Cinema Aurora</h1>
             <p class="hero-subtitle">Experiența perfectă la cinema</p>
@@ -938,6 +1068,7 @@
                                             <th style="padding: 12px 15px;">Sala</th>
                                             <th style="padding: 12px 15px;">Film</th>
                                             <th style="padding: 12px 15px;">Ora</th>
+                                            <th style="padding: 12px 15px; text-align: center;">Locuri</th>
                                             <th style="padding: 12px 15px; text-align: center;">Status</th>
                                         </tr>
                                     </thead>
@@ -1054,8 +1185,26 @@
 
     <script>
         let films = [];
+        let proiectii = [];
         let selectedFilm = null;
+        let selectedProiectie = null;
         let selectedSeat = null;
+
+        // Hamburger Menu Logic
+        function toggleHamburger(event) {
+            event.stopPropagation();
+            const dropdown = document.getElementById('hamburger-dropdown');
+            if (dropdown) {
+                dropdown.classList.toggle('show');
+            }
+        }
+
+        window.addEventListener('click', () => {
+            const dropdown = document.getElementById('hamburger-dropdown');
+            if (dropdown) {
+                dropdown.classList.remove('show');
+            }
+        });
 
         // Tabs Configuration
         const tabIds = ['schedule', 'films', 'souvenirs'];
@@ -1126,14 +1275,14 @@
 
         const API_BASE = ""; // Relative to server
 
-        function getFilmStatus(f) {
+        function getProiectieStatus(p, filmDurata) {
             const now = new Date();
             const currentHour = now.getHours();
             const currentMin = now.getMinutes();
             const currentTotalMin = currentHour * 60 + currentMin;
 
-            const filmHour = parseInt(f.oraRulare.substring(0, 2));
-            const filmMin = parseInt(f.oraRulare.substring(3, 5));
+            const filmHour = parseInt(p.oraRulare.substring(0, 2));
+            const filmMin = parseInt(p.oraRulare.substring(3, 5));
             const filmTotalMin = filmHour * 60 + filmMin;
 
             const diff = filmTotalMin - currentTotalMin;
@@ -1142,12 +1291,11 @@
                 // STAREA 1: Disponibil, peste 2 ore
                 return {
                     state: 1,
-                    available: true,
-                    statusText: `🕙 ${f.oraRulare}`,
+                    available: p.locuriDisponibile > 0,
+                    statusText: `🕙 ${p.oraRulare}`,
                     badgeClass: "available",
-                    badgeText: `🪑 ${f.locuriDisponibile} locuri disponibile`,
-                    subText: `Experiență premium în Sala ${f.idSala}.`,
-                    badgeHtml: `<span style="color: var(--success); font-weight: 700;">🪑 ${f.locuriDisponibile} locuri disponibile</span>`
+                    badgeText: `🪑 ${p.locuriDisponibile} locuri disponibile`,
+                    badgeHtml: `<span style="color: var(--success); font-weight: 700;">🪑 ${p.locuriDisponibile} locuri disponibile</span>`
                 };
             } else if (diff > 0) {
                 // STAREA 2: Countdown (sub 2 ore)
@@ -1159,12 +1307,11 @@
 
                 return {
                     state: 2,
-                    available: true,
-                    statusText: `🕙 ${f.oraRulare}`,
+                    available: p.locuriDisponibile > 0,
+                    statusText: `🕙 ${p.oraRulare}`,
                     badgeClass: "starting-soon",
                     badgeText: `🔴 Începe în ${countdownStr}`,
-                    subText: `🪑 ${f.locuriDisponibile} locuri disponibile`,
-                    badgeHtml: `<span class="status-badge starting-soon">🔴 Începe în ${countdownStr}</span>`
+                    badgeHtml: `<span class="status-badge starting-soon" style="animation: pulse-orange 1.5s infinite alternate;">🔴 Începe în ${countdownStr}</span>`
                 };
             } else if (diff >= -15) {
                 // STAREA 3: Rulează acum (sub 15 minute)
@@ -1174,7 +1321,6 @@
                     statusText: `▶ Rulează acum`,
                     badgeClass: "running-now",
                     badgeText: `▶ Rulează acum`,
-                    subText: `Rezervările pentru acest film sunt închise. Același film va rula mâine la aceeași oră.`,
                     badgeHtml: `<span class="status-badge running-now">▶ Rulează acum</span>`
                 };
             } else {
@@ -1185,7 +1331,6 @@
                     statusText: `⛔ Proiecție încheiată`,
                     badgeClass: "ended",
                     badgeText: `⛔ Proiecție încheiată`,
-                    subText: `Revino mâine pentru același program.`,
                     badgeHtml: `<span class="status-badge ended">⛔ Proiecție încheiată</span>`
                 };
             }
@@ -1208,16 +1353,18 @@
             const tbody = document.getElementById('schedule-body');
             if (!tbody) return;
 
-            // Sort by Sala ascending, then by oraRulare ascending
-            const sortedForSchedule = [...films].sort((a, b) => {
+            const sortedProiectii = [...proiectii].sort((a, b) => {
                 if (a.idSala !== b.idSala) {
                     return a.idSala - b.idSala;
                 }
                 return a.oraRulare.localeCompare(b.oraRulare);
             });
 
-            tbody.innerHTML = sortedForSchedule.map(f => {
-                const status = getFilmStatus(f);
+            tbody.innerHTML = sortedProiectii.map(p => {
+                const f = films.find(f => f.index === p.filmIndex);
+                if (!f) return '';
+
+                const status = getProiectieStatus(p, f.durata);
                 let badgeMarkup = "";
                 let rowClass = "schedule-row";
                 let rowAction = "";
@@ -1225,11 +1372,11 @@
                 if (status.state === 1) {
                     badgeMarkup = `<span class="status-badge available">✅ Disponibil</span>`;
                     rowClass += " clickable";
-                    rowAction = `onclick="scrollToCard(${f.id})"`;
+                    rowAction = `onclick="scrollToCard(${f.index})"`;
                 } else if (status.state === 2) {
-                    badgeMarkup = `<span class="status-badge starting-soon">🔴 Începe în curând</span>`;
+                    badgeMarkup = `<span class="status-badge starting-soon" style="animation: pulse-orange 1.5s infinite alternate;">🔴 Începe în curând</span>`;
                     rowClass += " clickable";
-                    rowAction = `onclick="scrollToCard(${f.id})"`;
+                    rowAction = `onclick="scrollToCard(${f.index})"`;
                 } else if (status.state === 3) {
                     badgeMarkup = `<span class="status-badge running-now">▶ Rulează</span>`;
                 } else {
@@ -1238,9 +1385,10 @@
 
                 return `
                     <tr class="${rowClass}" ${rowAction}>
-                        <td style="padding: 12px 15px; font-weight: 600;">Sala ${f.idSala}</td>
+                        <td style="padding: 12px 15px; font-weight: 600;">Sala ${p.idSala}</td>
                         <td style="padding: 12px 15px; font-weight: 600; color: #fff;">${f.titlu}</td>
-                        <td style="padding: 12px 15px; font-family: monospace; font-size: 1rem;">${f.oraRulare}</td>
+                        <td style="padding: 12px 15px; font-family: monospace; font-size: 1rem;">${p.oraRulare}</td>
+                        <td style="padding: 12px 15px; text-align: center; font-weight: 700;">${p.locuriDisponibile}</td>
                         <td style="padding: 12px 15px; text-align: center;">${badgeMarkup}</td>
                     </tr>
                 `;
@@ -1251,33 +1399,75 @@
             const grid = document.getElementById('film-grid');
             if (!grid) return;
 
-            // Sort films as requested:
-            // - Available first (state 1 and 2), sorted by oraRulare asc
-            // - Unavailable last (state 3 and 4), sorted by oraRulare asc
-            const availableFilms = [];
-            const unavailableFilms = [];
+            const activeFilms = [];
+            const inactiveFilms = [];
 
             films.forEach(f => {
-                const status = getFilmStatus(f);
-                if (status.available) {
-                    availableFilms.push({ f, status });
+                const pAsociate = proiectii.filter(p => p.filmIndex === f.index);
+
+                const pDetails = pAsociate.map(p => {
+                    const status = getProiectieStatus(p, f.durata);
+                    return { p, status };
+                });
+
+                let totalLocuriDisponibile = 0;
+                pDetails.forEach(({ p, status }) => {
+                    if (status.state === 1 || status.state === 2) {
+                        totalLocuriDisponibile += p.locuriDisponibile;
+                    }
+                });
+
+                const areProiectieActiva = pDetails.some(({ status }) => status.state === 1 || status.state === 2);
+
+                if (areProiectieActiva) {
+                    activeFilms.push({ f, pDetails, totalLocuriDisponibile });
                 } else {
-                    unavailableFilms.push({ f, status });
+                    inactiveFilms.push({ f, pDetails, totalLocuriDisponibile });
                 }
             });
 
-            availableFilms.sort((a, b) => a.f.oraRulare.localeCompare(b.f.oraRulare));
-            unavailableFilms.sort((a, b) => a.f.oraRulare.localeCompare(b.f.oraRulare));
+            activeFilms.sort((a, b) => {
+                const aPrime = a.pDetails.filter(pd => pd.status.state === 1 || pd.status.state === 2).map(pd => pd.p.oraRulare).sort()[0] || "";
+                const bPrime = b.pDetails.filter(pd => pd.status.state === 1 || pd.status.state === 2).map(pd => pd.p.oraRulare).sort()[0] || "";
+                return aPrime.localeCompare(bPrime);
+            });
 
             let html = "";
 
-            // Render available
-            html += availableFilms.map(({ f, status }) => {
+            // 1. Render active films
+            html += activeFilms.map(({ f, pDetails, totalLocuriDisponibile }) => {
+                let oreHtml = '<div style="display: flex; gap: 10px; flex-wrap: wrap; margin-top: 15px;">';
+                pDetails.forEach(({ p, status }) => {
+                    let btnClass = "proiectie-btn";
+                    let disabledAttr = "";
+                    let displayLabel = p.oraRulare;
+
+                    if (status.state === 1 || status.state === 2) {
+                        if (p.locuriDisponibile > 0) {
+                            btnClass += (status.state === 2) ? " starting-soon" : " available";
+                        } else {
+                            btnClass += " sold-out";
+                            disabledAttr = "disabled";
+                            displayLabel += " (Sold Out)";
+                        }
+                    } else {
+                        btnClass += " ended";
+                        disabledAttr = "disabled";
+                    }
+
+                    oreHtml += `
+                        <button class="${btnClass}" ${disabledAttr} onclick="selectProiectie(${p.idProiectie}, ${f.index}, event)">
+                            ${displayLabel}
+                        </button>
+                    `;
+                });
+                oreHtml += '</div>';
+
                 return `
-                <div class="film-card" onclick="selectFilm(${f.id})" id="film-card-${f.id}">
-                    <div class="poster-container" id="poster-container-${f.id}">
-                        <div class="poster-placeholder" id="poster-placeholder-${f.id}">🎬</div>
-                        <img class="poster-img" id="poster-img-${f.id}" style="display: none;" alt="${f.titlu}">
+                <div class="film-card" id="film-card-${f.index}" style="cursor: default;">
+                    <div class="poster-container" id="poster-container-${f.index}">
+                        <div class="poster-placeholder" id="poster-placeholder-${f.index}">🎬</div>
+                        <img class="poster-img" id="poster-img-${f.index}" style="display: none;" alt="${f.titlu}">
                     </div>
                     <h3>${f.titlu}</h3>
                     <div class="film-meta">
@@ -1285,30 +1475,36 @@
                         <span class="tag">${f.durata} min</span>
                         <span class="tag">${f.varstaMinima}+</span>
                     </div>
-                    <p style="color: var(--text-muted); font-size: 0.9rem; margin-bottom: 20px;">
-                        Experiență premium în Sala ${f.idSala}.
+                    <p style="color: var(--success); font-size: 0.95rem; margin-top: 15px; font-weight: 700;">
+                        🪑 ${totalLocuriDisponibile} locuri disponibile în total
                     </p>
-                    <p style="color: var(--primary); font-size: 0.9rem; margin-bottom: 15px; font-weight: 600;">
-                        ${status.statusText}
+                    <p style="color: var(--text-muted); font-size: 0.85rem; margin-top: 10px; font-weight: 600;">
+                        Proiecții de azi:
                     </p>
-                    <p style="color: var(--text-muted); font-size: 0.85rem; margin-bottom: 15px;">
-                        ${status.badgeHtml}
-                    </p>
-                    <button class="btn-select" id="btn-${f.id}" style="opacity: 1; cursor: pointer;">Rezervă Loc</button>
+                    ${oreHtml}
                 </div>
-            `;}).join('');
+            `;
+            }).join('');
 
-            // Render separator and unavailable if any
-            if (unavailableFilms.length > 0) {
+            // 2. Render inactive films
+            if (inactiveFilms.length > 0) {
                 html += `<div class="grid-separator">— Proiecții încheiate —</div>`;
-                html += unavailableFilms.map(({ f, status }) => {
-                    const opacity = "0.5";
-                    const cursor = "not-allowed";
+                html += inactiveFilms.map(({ f, pDetails }) => {
+                    let oreHtml = '<div style="display: flex; gap: 10px; flex-wrap: wrap; margin-top: 15px; opacity: 0.5;">';
+                    pDetails.forEach(({ p, status }) => {
+                        oreHtml += `
+                            <button class="proiectie-btn ended" disabled>
+                                ${p.oraRulare}
+                            </button>
+                        `;
+                    });
+                    oreHtml += '</div>';
+
                     return `
-                    <div class="film-card" id="film-card-${f.id}" style="opacity: ${opacity}; pointer-events: none;">
-                        <div class="poster-container" id="poster-container-${f.id}">
-                            <div class="poster-placeholder" id="poster-placeholder-${f.id}">🎬</div>
-                            <img class="poster-img" id="poster-img-${f.id}" style="display: none;" alt="${f.titlu}">
+                    <div class="film-card" id="film-card-${f.index}" style="opacity: 0.5;">
+                        <div class="poster-container" id="poster-container-${f.index}">
+                            <div class="poster-placeholder" id="poster-placeholder-${f.index}">🎬</div>
+                            <img class="poster-img" id="poster-img-${f.index}" style="display: none;" alt="${f.titlu}">
                         </div>
                         <h3>${f.titlu}</h3>
                         <div class="film-meta">
@@ -1316,27 +1512,21 @@
                             <span class="tag">${f.durata} min</span>
                             <span class="tag">${f.varstaMinima}+</span>
                         </div>
-                        <p style="color: var(--text-muted); font-size: 0.9rem; margin-bottom: 20px;">
-                            ${status.subText}
+                        <p style="color: var(--text-muted); font-size: 0.85rem; margin-top: 15px;">
+                            Nu mai sunt proiecții active azi.
                         </p>
-                        <p style="color: var(--primary); font-size: 0.9rem; margin-bottom: 15px; font-weight: 600;">
-                            ${status.statusText}
-                        </p>
-                        <p style="color: var(--text-muted); font-size: 0.85rem; margin-bottom: 15px;">
-                            ${status.badgeHtml}
-                        </p>
-                        <button class="btn-select" id="btn-${f.id}" disabled style="opacity: 0.5; cursor: ${cursor};">Rezervă Loc</button>
+                        ${oreHtml}
                     </div>
-                `;}).join('');
+                `;
+                }).join('');
             }
 
             grid.innerHTML = html;
 
-            // Fetch posters asynchronously after rendering is done
             films.forEach(f => {
                 getPosterUrl(f.titlu).then(url => {
-                    const placeholder = document.getElementById(`poster-placeholder-${f.id}`);
-                    const img = document.getElementById(`poster-img-${f.id}`);
+                    const placeholder = document.getElementById(`poster-placeholder-${f.index}`);
+                    const img = document.getElementById(`poster-img-${f.index}`);
                     if (url && img && placeholder) {
                         img.src = url;
                         img.onload = () => {
@@ -1344,7 +1534,6 @@
                             img.style.display = 'block';
                         };
                     } else if (placeholder) {
-                        // If no URL or error, we show movie title over the placeholder
                         placeholder.innerHTML = `<span style="font-size: 1rem; text-align: center; padding: 15px; color: var(--text-muted); font-weight: 600; line-height: 1.4;">🎬<br>${f.titlu}</span>`;
                         placeholder.style.animation = 'none';
                     }
@@ -1441,29 +1630,38 @@
             window.location.href = '/cos';
         }
 
-        async function selectFilm(id) {
-            selectedFilm = films.find(f => f.id === id);
-            const status = getFilmStatus(selectedFilm);
-            if (!status.available) {
-                alert("Acest film a început deja sau s-a încheiat. Nu se mai pot face rezervări.");
+        async function selectProiectie(idProiectie, filmIndex, event) {
+            if (event) event.stopPropagation();
+
+            const pSelected = proiectii.find(p => p.idProiectie === idProiectie);
+            selectedFilm = films.find(f => f.index === filmIndex);
+
+            if (!pSelected || !selectedFilm) {
+                alert("Proiecție sau film invalid.");
                 return;
             }
+
+            const status = getProiectieStatus(pSelected, selectedFilm.durata);
+            if (status.state > 2 || !status.available) {
+                alert("Această proiecție nu mai este disponibilă sau este Sold Out.");
+                return;
+            }
+
+            selectedProiectie = pSelected;
             selectedSeat = null;
             document.getElementById('sala-film-title').innerText = selectedFilm.titlu;
 
-            // Display film time and date
             const now = new Date();
             const dateStr = now.toLocaleDateString('ro-RO');
-            document.getElementById('sala-film-info').innerText = `${selectedFilm.oraRulare} • ${dateStr}`;
+            document.getElementById('sala-film-info').innerText = `${pSelected.oraRulare} • ${dateStr} • Sala ${pSelected.idSala}`;
 
             document.getElementById('reservation-controls').style.display = 'none';
 
-            // Hide hero, souvenirs, admin button, cart icon
             document.body.classList.add('seat-selection-active');
 
             showLoader(true);
             try {
-                const response = await fetch(`${API_BASE}/api/sala/${id}`);
+                const response = await fetch(`${API_BASE}/api/proiectii/${idProiectie}/sala`);
                 const data = await response.json();
                 renderSala(data.locuri);
                 showView('view-sala');
@@ -1585,17 +1783,27 @@
         async function init() {
             showLoader(true);
             try {
-                const response = await fetch(`${API_BASE}/api/filme`);
-                films = await response.json();
+                const responseFilms = await fetch(`${API_BASE}/api/filme`);
+                films = await responseFilms.json();
+
+                const responseProiectii = await fetch(`${API_BASE}/api/proiectii`);
+                proiectii = await responseProiectii.json();
+
                 renderFilms();
                 renderSchedule();
                 await loadSuveniruri();
 
                 // Live updates every minute
-                setInterval(() => {
+                setInterval(async () => {
                     console.log("Minute elapsed: Updating live countdowns, statuses and schedule...");
-                    renderFilms();
-                    renderSchedule();
+                    try {
+                        const resProj = await fetch(`${API_BASE}/api/proiectii`);
+                        proiectii = await resProj.json();
+                        renderFilms();
+                        renderSchedule();
+                    } catch (e) {
+                        console.error(e);
+                    }
                 }, 60000);
             } catch (err) {
                 alert("Eroare la conectarea cu serverul!");

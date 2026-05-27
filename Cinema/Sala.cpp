@@ -50,6 +50,13 @@ void Sala::rezervaLoc(int rand, int col) {
     locuri[rand][col] = true;
 }
 
+void Sala::elibereazaLoc(int rand, int col) {
+    if (rand >= 0 && rand < (int)locuri.size() &&
+        col >= 0 && col < (int)locuri[0].size()) {
+        locuri[rand][col] = false;
+    }
+}
+
 void Sala::selecteazaLocInteractiv(int& outRand, int& outCol) const {
     int cursorR = 0, cursorC = 0;
     int randuri = (int)locuri.size();

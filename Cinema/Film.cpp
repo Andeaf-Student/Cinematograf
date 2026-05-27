@@ -5,13 +5,11 @@
 
 using namespace std;
 
-Film::Film(string titlu, string gen, int durata, int varstaMinima, Sala sala, string oraRulare)
-    : sala(sala) {
+Film::Film(string titlu, string gen, int durata, int varstaMinima) {
     this->titlu = titlu;
     this->gen = gen;
     this->durata = durata;
     this->varstaMinima = varstaMinima;
-    this->oraRulare = oraRulare;
 }
 
 vector<string> Film::getLiniiAfisare(int index) const {
@@ -41,17 +39,9 @@ vector<string> Film::getLiniiAfisare(int index) const {
     ss << "  │ Varsta: " << left << setw(31) << to_string(varstaMinima) + "+" << "│";
     linii.push_back(ss.str());
     
-    ss.str(""); ss.clear();
-    ss << "  │ Sala: " << left << setw(33) << sala.getIndex() << "│";
-    linii.push_back(ss.str());
-    
     linii.push_back("  └────────────────────────────────────────┘");
     
     return linii;
-}
-
-Sala& Film::getSala() {
-    return sala;
 }
 
 int Film::getVarstaMinima() const {
@@ -68,9 +58,5 @@ string Film::getGen() const {
 
 int Film::getDurata() const {
     return durata;
-}
-
-string Film::getOraRulare() const {
-    return oraRulare;
 }
 
